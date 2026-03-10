@@ -1,65 +1,64 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-function formatTime(seconds: number): string {
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = seconds % 60;
-  if (h > 0) {
-    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+import { Clock } from 'lucide-react';
 
 interface TimerProps {
   startedAt: string;
   durationMinutes: number;
-  onExpire?: () => void;
+  onExpire: () => void;
   expired?: boolean;
 }
 
+function getRemaining(startedAt: string, durationMinutes: number): number {
+  const end = new Date(startedAt).getTime() + durationMinutes * 60 * 1000;
+  return Math.max(0, Math.floor((end - Date.now()) / 1000));
+}
+
+function fmt(s: number): string {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
+
 export function Timer({ startedAt, durationMinutes, onExpire, expired }: TimerProps) {
-  const [secondsLeft, setSecondsLeft] = useState(() => {
-    const start = new Date(startedAt).getTime();
-    const end = start + durationMinutes * 60 * 1000;
-    const now = Date.now();
-    return Math.max(0, Math.floor((end - now) / 1000));
-  });
+  const [remaining, setRemaining] = useState(() => getRemaining(startedAt, durationMinutes));
+  const [hasExpired, setHasExpired] = useState(false);
 
   useEffect(() => {
-    if (expired) return;
-    const start = new Date(startedAt).getTime();
-    const end = start + durationMinutes * 60 * 1000;
-
-    const tick = () => {
-      const now = Date.now();
-      const left = Math.max(0, Math.floor((end - now) / 1000));
-      setSecondsLeft(left);
-      if (left <= 0) onExpire?.();
-    };
-
-    tick();
-    const id = setInterval(tick, 1000);
+    if (expired || hasExpired) return;
+    const id = setInterval(() => {
+      const r = getRemaining(startedAt, durationMinutes);
+      setRemaining(r);
+      if (r === 0 && !hasExpired) {
+        setHasExpired(true);
+        onExpire();
+        clearInterval(id);
+      }
+    }, 1000);
     return () => clearInterval(id);
-  }, [startedAt, durationMinutes, onExpire, expired]);
+  }, [startedAt, durationMinutes, onExpire, expired, hasExpired]);
 
-  const isLow = secondsLeft > 0 && secondsLeft <= 300;
-  const isCritical = secondsLeft > 0 && secondsLeft <= 60;
+  const isWarning = remaining <= 5 * 60 && remaining > 60;
+  const isCritical = remaining <= 60 && remaining > 0;
+
+  let containerCls = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-sm font-bold transition-all ';
+  if (expired) {
+    containerCls += 'bg-red-500 text-white';
+  } else if (isCritical) {
+    containerCls += 'bg-red-500 text-white animate-pulse';
+  } else if (isWarning) {
+    containerCls += 'bg-amber-500 text-white';
+  } else {
+    containerCls += 'bg-slate-700 text-white';
+  }
 
   return (
-    <div
-      className={`rounded-lg px-4 py-2 font-mono text-xl font-semibold tabular-nums ${
-        expired
-          ? 'bg-red-100 text-red-800'
-          : isCritical
-          ? 'bg-red-200 text-red-900 animate-pulse'
-          : isLow
-          ? 'bg-amber-100 text-amber-800'
-          : 'bg-slate-100 text-slate-700'
-      }`}
-    >
-      {expired ? '00:00' : formatTime(secondsLeft)}
+    <div className={containerCls}>
+      <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+      <span className="tabular-nums">{expired ? '00:00' : fmt(remaining)}</span>
     </div>
   );
 }

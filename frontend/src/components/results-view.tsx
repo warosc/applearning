@@ -1,185 +1,221 @@
 'use client';
 
-import { CheckCircle2, XCircle, MinusCircle, RotateCcw, Trophy } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { CheckCircle2, XCircle, MinusCircle, Trophy, Clock, RotateCcw, TrendingUp } from 'lucide-react';
 
-interface Question {
-  id: string;
-  type: string;
-  prompt: string;
-  score: number;
+interface ResultItem {
+  question_id?: string;
+  questionId?: string;
+  prompt?: string;
+  is_correct?: boolean | null;
+  isCorrect?: boolean | null;
+  score_obtained?: number | null;
+  scoreObtained?: number | null;
+  max_score?: number;
+  scorePossible?: number;
+  answer_json?: unknown;
+  answerJson?: unknown;
 }
 
-interface PerQuestionResult {
-  questionId: string;
-  isCorrect: boolean | null;
-  scoreObtained: number;
-  scorePossible: number;
-  answered: boolean;
-}
-
-interface ResultSummary {
-  totalObtained?: number;
-  totalPossible?: number;
+interface ResultData {
+  // snake_case fields (new API shape)
+  correct?: number;
+  incorrect?: number;
+  omitted?: number;
+  score_obtained?: number;
+  total_score?: number;
   percentage?: number;
+  time_spent_seconds?: number | null;
+  questions?: ResultItem[];
+  // camelCase fields (old API shape)
   correctCount?: number;
   incorrectCount?: number;
   unansweredCount?: number;
-  perQuestion?: PerQuestionResult[];
+  totalObtained?: number;
+  totalPossible?: number;
+  perQuestion?: ResultItem[];
+}
+
+function fmt(s: number | null | undefined): string {
+  if (s == null) return '—';
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}m ${String(sec).padStart(2, '0')}s`;
+}
+
+function formatAnswer(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '—';
+  if (Array.isArray(v)) return v.length === 0 ? '—' : v.join(', ');
+  return String(v);
 }
 
 interface ResultsViewProps {
-  result: Record<string, unknown>;
-  questions: Question[];
-  answers: Record<string, unknown>;
+  result: unknown;
   onRestart: () => void;
+  // Legacy props — accepted but not required
+  questions?: unknown[];
+  answers?: Record<string, unknown>;
 }
 
-function formatAnswer(value: unknown): string {
-  if (value === undefined || value === null || value === '') return '—';
-  if (Array.isArray(value)) return value.length === 0 ? '—' : value.join(', ');
-  return String(value);
-}
-
-function ScoreRing({ percentage }: { percentage: number }) {
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percentage / 100) * circumference;
-  const color = percentage >= 70 ? '#16a34a' : percentage >= 50 ? '#d97706' : '#dc2626';
-
-  return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg width="128" height="128" className="-rotate-90">
-        <circle cx="64" cy="64" r={radius} fill="none" stroke="#e2e8f0" strokeWidth="10" />
-        <circle
-          cx="64"
-          cy="64"
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="10"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 0.8s ease' }}
-        />
-      </svg>
-      <div className="absolute text-center">
-        <p className="text-2xl font-bold" style={{ color }}>
-          {percentage.toFixed(0)}%
-        </p>
-      </div>
+export function ResultsView({ result, onRestart }: ResultsViewProps) {
+  const data = result as ResultData | null;
+  if (!data) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <p className="text-gray-400">No hay resultados disponibles.</p>
     </div>
   );
-}
 
-export function ResultsView({ result, questions, answers, onRestart }: ResultsViewProps) {
-  const r = result as ResultSummary;
-  const totalObtained = r.totalObtained ?? 0;
-  const totalPossible = r.totalPossible ?? 100;
-  const percentage = r.percentage ?? 0;
-  const correctCount = r.correctCount ?? 0;
-  const incorrectCount = r.incorrectCount ?? 0;
-  const unansweredCount = r.unansweredCount ?? 0;
-  const perQuestion = r.perQuestion ?? [];
+  // Normalize both API shapes
+  const correct = data.correct ?? data.correctCount ?? 0;
+  const incorrect = data.incorrect ?? data.incorrectCount ?? 0;
+  const omitted = data.omitted ?? data.unansweredCount ?? 0;
+  const scoreObtained = data.score_obtained ?? data.totalObtained ?? 0;
+  const totalScore = data.total_score ?? data.totalPossible ?? 100;
+  const pct = data.percentage ?? 0;
+  const timeSpent = data.time_spent_seconds ?? null;
+  const questionItems: ResultItem[] = data.questions ?? data.perQuestion ?? [];
 
-  const passed = percentage >= 60;
+  const passed = pct >= 60;
+
+  // Score ring SVG
+  const radius = 48;
+  const circ = 2 * Math.PI * radius;
+  const dash = circ * (pct / 100);
+  const ringColor = pct >= 70 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
 
   return (
-    <main className="min-h-screen bg-slate-50 py-10 px-4">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <div className="min-h-screen bg-slate-50 py-8 px-4">
+      <div className="max-w-3xl mx-auto space-y-6">
 
-        {/* Tarjeta principal */}
-        <div className="rounded-2xl border bg-white p-8 shadow-sm text-center">
-          <div className="mb-2 flex justify-center">
-            <Trophy className={cn('h-10 w-10', passed ? 'text-amber-400' : 'text-slate-400')} />
-          </div>
-          <h1 className="mb-1 text-2xl font-bold text-slate-800">
-            {passed ? '¡Examen completado!' : 'Examen finalizado'}
-          </h1>
-          <p className="mb-6 text-slate-500">
-            {passed ? 'Superaste el umbral de aprobación.' : 'No alcanzaste el umbral mínimo. ¡Sigue practicando!'}
-          </p>
-
-          <div className="flex justify-center mb-6">
-            <ScoreRing percentage={percentage} />
+        {/* Hero card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className={`px-6 py-5 ${passed ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-slate-600 to-slate-700'} text-white`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium opacity-80">Resultado del simulador</p>
+                <h1 className="text-2xl font-bold mt-0.5">
+                  {passed ? '¡Excelente resultado!' : 'Simulador completado'}
+                </h1>
+              </div>
+              <Trophy className={`h-12 w-12 ${passed ? 'text-yellow-300' : 'text-slate-400'}`} />
+            </div>
           </div>
 
-          <p className="text-3xl font-bold text-slate-800">
-            {totalObtained.toFixed(1)} <span className="text-lg font-normal text-slate-500">/ {totalPossible} pts</span>
-          </p>
+          <div className="px-6 py-6 flex flex-col sm:flex-row items-center gap-8">
+            {/* Score ring */}
+            <div className="flex-shrink-0 relative">
+              <svg width={120} height={120} className="-rotate-90">
+                <circle cx={60} cy={60} r={radius} stroke="#e5e7eb" strokeWidth={10} fill="none" />
+                <circle
+                  cx={60} cy={60} r={radius}
+                  stroke={ringColor} strokeWidth={10} fill="none"
+                  strokeDasharray={`${dash} ${circ - dash}`}
+                  strokeLinecap="round"
+                  style={{ transition: 'stroke-dasharray 1s ease' }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold text-gray-900">{pct.toFixed(0)}%</span>
+                <span className="text-xs text-gray-400">aciertos</span>
+              </div>
+            </div>
 
-          <div className="mt-6 grid grid-cols-3 divide-x rounded-xl border bg-slate-50 text-center">
-            <div className="p-4">
-              <p className="text-2xl font-bold text-green-600">{correctCount}</p>
-              <p className="text-xs text-slate-500 mt-1">Correctas</p>
-            </div>
-            <div className="p-4">
-              <p className="text-2xl font-bold text-red-500">{incorrectCount}</p>
-              <p className="text-xs text-slate-500 mt-1">Incorrectas</p>
-            </div>
-            <div className="p-4">
-              <p className="text-2xl font-bold text-slate-400">{unansweredCount}</p>
-              <p className="text-xs text-slate-500 mt-1">Sin responder</p>
+            {/* Stats grid */}
+            <div className="grid grid-cols-2 gap-4 flex-1 w-full">
+              <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-center">
+                <p className="text-2xl font-bold text-gray-900">{scoreObtained.toFixed(1)}</p>
+                <p className="text-xs text-gray-500 mt-0.5">de {totalScore} pts</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-0.5">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                </div>
+                <p className="text-lg font-bold text-gray-900">{fmt(timeSpent)}</p>
+                <p className="text-xs text-gray-500">tiempo usado</p>
+              </div>
+              <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-center">
+                <p className="text-2xl font-bold text-green-600">{correct}</p>
+                <p className="text-xs text-green-700">correctas</p>
+              </div>
+              <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-center">
+                <p className="text-2xl font-bold text-red-600">{incorrect}</p>
+                <p className="text-xs text-red-700">incorrectas</p>
+              </div>
+              {omitted > 0 && (
+                <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-center col-span-2">
+                  <p className="text-xl font-bold text-gray-500">{omitted}</p>
+                  <p className="text-xs text-gray-500">omitidas</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Desglose por pregunta */}
-        {questions.length > 0 && (
-          <div className="rounded-2xl border bg-white shadow-sm">
-            <div className="border-b px-6 py-4">
-              <h2 className="font-semibold text-slate-800">Desglose de respuestas</h2>
+        {/* Progress insight */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4 flex items-center gap-4">
+          <TrendingUp className="h-5 w-5 text-blue-500 flex-shrink-0" />
+          <p className="text-sm text-gray-600">
+            {pct >= 70
+              ? 'Tu desempeño es muy bueno. Sigue practicando para consolidar tus conocimientos.'
+              : pct >= 50
+              ? 'Buen intento. Repasa los temas donde cometiste errores y vuelve a intentarlo.'
+              : 'Te recomendamos estudiar más los temas del EXHCOBA antes de tu siguiente intento.'}
+          </p>
+        </div>
+
+        {/* Question breakdown */}
+        {questionItems.length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-200 bg-slate-50">
+              <h2 className="font-semibold text-gray-800">Detalle por pregunta</h2>
             </div>
-            <ul className="divide-y">
-              {questions.map((q, i) => {
-                const answer = answers[q.id];
-                const perQ = perQuestion.find((p) => p.questionId === q.id);
-                const isCorrect = perQ?.isCorrect ?? null;
-                const scoreObtained = perQ?.scoreObtained ?? 0;
+            <div className="divide-y divide-slate-100">
+              {questionItems.map((q, i) => {
+                const isCorrect = q.is_correct ?? q.isCorrect ?? null;
+                const score = q.score_obtained ?? q.scoreObtained ?? 0;
+                const maxScore = q.max_score ?? q.scorePossible ?? 0;
+                const answerVal = q.answer_json ?? q.answerJson;
+                const prompt = q.prompt ?? '';
 
                 return (
-                  <li key={q.id} className="flex items-start gap-3 px-6 py-4">
-                    <div className="flex-shrink-0 pt-0.5">
-                      {isCorrect === null ? (
-                        <MinusCircle className="h-5 w-5 text-slate-300" />
-                      ) : isCorrect ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-red-400" />
-                      )}
+                  <div key={q.question_id ?? q.questionId ?? i} className="flex items-start gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                    <div className="flex-shrink-0 mt-0.5">
+                      {isCorrect === true && <CheckCircle2 className="h-5 w-5 text-green-500" />}
+                      {isCorrect === false && <XCircle className="h-5 w-5 text-red-500" />}
+                      {isCorrect === null && <MinusCircle className="h-5 w-5 text-gray-400" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-700">
-                        <span className="mr-2 text-slate-400">{i + 1}.</span>
-                        {q.prompt}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        Tu respuesta:{' '}
-                        <span className="font-mono text-slate-700">{formatAnswer(answer)}</span>
+                      <p className="text-xs text-gray-400 mb-0.5">Pregunta {i + 1}</p>
+                      {prompt && (
+                        <p className="text-sm text-gray-800 line-clamp-2">{prompt}</p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Tu respuesta: <span className="text-gray-600 font-medium">{formatAnswer(answerVal)}</span>
                       </p>
                     </div>
                     <div className="flex-shrink-0 text-right">
-                      <p className={cn('text-sm font-semibold', isCorrect ? 'text-green-600' : isCorrect === false ? 'text-red-500' : 'text-slate-400')}>
-                        {scoreObtained.toFixed(1)}
-                      </p>
-                      <p className="text-xs text-slate-400">/{q.score} pts</p>
+                      <span className={`text-sm font-bold ${isCorrect ? 'text-green-600' : 'text-red-500'}`}>
+                        {(score ?? 0).toFixed(1)}
+                      </span>
+                      <span className="text-xs text-gray-400">/{maxScore.toFixed(1)}</span>
                     </div>
-                  </li>
+                  </div>
                 );
               })}
-            </ul>
+            </div>
           </div>
         )}
 
-        <div className="flex justify-center">
-          <Button onClick={onRestart} variant="outline" className="gap-2">
+        {/* Restart */}
+        <div className="flex justify-center pb-4">
+          <button
+            onClick={onRestart}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm"
+          >
             <RotateCcw className="h-4 w-4" />
             Volver al inicio
-          </Button>
+          </button>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

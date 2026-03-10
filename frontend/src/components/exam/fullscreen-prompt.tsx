@@ -1,27 +1,53 @@
 'use client';
-interface Props { examTitle: string; onEnterFullscreen: () => void; onSkip: () => void; }
-export function FullscreenPrompt({ examTitle, onEnterFullscreen, onSkip }: Props) {
+
+import { Maximize2, Shield, Info } from 'lucide-react';
+
+interface FullscreenPromptProps {
+  examTitle: string;
+  onEnterFullscreen: () => void;
+  onSkip: () => void;
+}
+
+export function FullscreenPrompt({ examTitle, onEnterFullscreen, onSkip }: FullscreenPromptProps) {
   return (
-    <div className="fixed inset-0 z-50 bg-gray-900/90 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-8 text-center space-y-6">
-        <div className="text-5xl">🖥️</div>
-        <div>
-          <h2 className="text-xl font-bold text-gray-900">Modo examen</h2>
-          <p className="text-gray-600 mt-2">{examTitle}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white text-center">
+          <Shield className="h-10 w-10 mx-auto mb-2 text-blue-200" />
+          <h2 className="text-lg font-bold">{examTitle}</h2>
+          <p className="text-sm text-blue-200 mt-1">Simulador EXHCOBA</p>
         </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800 text-left space-y-1">
-          <p className="font-semibold">Durante el examen:</p>
-          <p>• No podrás copiar ni pegar texto</p>
-          <p>• Los cambios de pestaña serán registrados</p>
-          <p>• Se monitorea la actividad de pantalla</p>
-        </div>
-        <div className="flex flex-col gap-2">
-          <button onClick={onEnterFullscreen} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg">
-            Entrar en pantalla completa y comenzar
-          </button>
-          <button onClick={onSkip} className="text-sm text-gray-500 hover:text-gray-700 py-2">
-            Continuar sin pantalla completa
-          </button>
+
+        <div className="px-6 py-5 space-y-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
+            <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
+              <Info className="h-4 w-4 flex-shrink-0" />
+              Condiciones del simulador
+            </div>
+            <ul className="text-xs text-amber-700 space-y-1 ml-6 list-disc">
+              <li>Se recomienda pantalla completa para evitar distracciones</li>
+              <li>No se permite copiar ni pegar texto</li>
+              <li>Los cambios de pestaña quedan registrados</li>
+              <li>Las respuestas se guardan automáticamente</li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={onEnterFullscreen}
+              className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors shadow-sm"
+            >
+              <Maximize2 className="h-4 w-4" />
+              Entrar en pantalla completa
+            </button>
+            <button
+              onClick={onSkip}
+              className="w-full py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Continuar sin pantalla completa
+            </button>
+          </div>
         </div>
       </div>
     </div>

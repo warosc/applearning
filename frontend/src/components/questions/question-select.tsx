@@ -1,76 +1,88 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-
 interface Option {
-  id: string;
-  label: string;
+  id?: string;
   value: string;
+  label: string;
+  is_correct?: boolean;
+  isCorrect?: boolean;
 }
 
 interface QuestionSelectProps {
-  options: Option[];
-  value: string | string[] | null;
-  onChange: (value: string | string[]) => void;
-  multiple?: boolean;
+  question: {
+    type: string;
+    options?: Option[];
+  };
+  answer: unknown;
+  onAnswer: (value: unknown) => void;
 }
 
-export function QuestionSelect({ options, value, onChange, multiple }: QuestionSelectProps) {
-  if (multiple) {
-    const selected = (value as string[] | null) ?? [];
-    const toggle = (v: string) => {
-      const next = selected.includes(v)
-        ? selected.filter((x) => x !== v)
-        : [...selected, v];
-      onChange(next);
-    };
-    return (
-      <div className="space-y-2">
-        {options.map((opt) => (
-          <label
-            key={opt.id}
-            className={cn(
-              'flex cursor-pointer items-center gap-2 rounded-lg border p-3 transition',
-              selected.includes(opt.value)
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-slate-200 hover:border-slate-300'
-            )}
-          >
-            <input
-              type="checkbox"
-              checked={selected.includes(opt.value)}
-              onChange={() => toggle(opt.value)}
-              className="h-4 w-4 rounded border-slate-300"
-            />
-            <span>{opt.label}</span>
-          </label>
-        ))}
-      </div>
-    );
+const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+
+export function QuestionSelect({ question, answer, onAnswer }: QuestionSelectProps) {
+  const options = question.options ?? [];
+  const isMultiple = question.type === 'multiple_choice';
+
+  const selectedValues: string[] = isMultiple
+    ? Array.isArray(answer) ? (answer as string[]) : []
+    : typeof answer === 'string' ? [answer] : [];
+
+  function handleClick(value: string) {
+    if (isMultiple) {
+      const current = selectedValues.includes(value)
+        ? selectedValues.filter((v) => v !== value)
+        : [...selectedValues, value];
+      onAnswer(current);
+    } else {
+      onAnswer(selectedValues[0] === value ? null : value);
+    }
   }
 
   return (
-    <div className="space-y-2">
-      {options.map((opt) => (
-        <label
-          key={opt.id}
-          className={cn(
-            'flex cursor-pointer items-center gap-2 rounded-lg border p-3 transition',
-            value === opt.value
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-slate-200 hover:border-slate-300'
-          )}
-        >
-          <input
-            type="radio"
-            name="choice"
-            checked={value === opt.value}
-            onChange={() => onChange(opt.value)}
-            className="h-4 w-4 border-slate-300"
-          />
-          <span>{opt.label}</span>
-        </label>
-      ))}
+    <div className="space-y-2.5">
+      {isMultiple && (
+        <p className="text-xs text-gray-500 mb-3">Selecciona todas las respuestas correctas</p>
+      )}
+      {options.map((opt, idx) => {
+        const letter = LETTERS[idx] ?? String(idx + 1);
+        const selected = selectedValues.includes(opt.value);
+
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => handleClick(opt.value)}
+            className={`w-full text-left flex items-start gap-3 px-4 py-3.5 rounded-xl border-2 transition-all group ${
+              selected
+                ? 'border-blue-500 bg-blue-50 shadow-sm'
+                : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'
+            }`}
+          >
+            {/* Letter badge */}
+            <span className={`flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
+              selected
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-700'
+            }`}>
+              {letter}
+            </span>
+            {/* Label */}
+            <span className={`flex-1 text-sm leading-relaxed pt-0.5 ${
+              selected ? 'text-blue-900 font-medium' : 'text-gray-700'
+            }`}>
+              {opt.label}
+            </span>
+            {/* Check indicator */}
+            {selected && (
+              <span className="flex-shrink-0 mt-0.5">
+                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 }

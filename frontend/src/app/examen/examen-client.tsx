@@ -1,50 +1,128 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useSimulatorStore } from '@/store/simulator-store';
 import {
-  fetchExams,
   startAttempt,
   fetchAttempt,
   saveAnswer,
   submitAttempt,
   fetchResult,
-  submitForm,
-  fetchFormTemplate,
   markForReview,
   logSecurityEvent,
+  fetchExams,
+  fetchFormTemplate,
 } from '@/lib/api';
-import { QuestionPanel } from '@/components/question-panel';
-import { QuestionRenderer } from '@/components/questions/question-renderer';
-import { Calculator } from '@/components/calculator';
-import { ExamForm } from '@/components/exam-form';
-import { Timer } from '@/components/timer';
-import { ResultsView } from '@/components/results-view';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Send, Flag } from 'lucide-react';
 import { useExamSecurity, SecurityEventType } from '@/hooks/use-exam-security';
 import { SecurityWarning } from '@/components/security-warning';
 import { FullscreenPrompt } from '@/components/exam/fullscreen-prompt';
 import { ReviewModal } from '@/components/exam/review-modal';
+import { ResultsView } from '@/components/results-view';
+import { QuestionRenderer } from '@/components/questions/question-renderer';
+import { Calculator } from '@/components/calculator';
+import { Timer } from '@/components/timer';
+import {
+  Menu, X, Calculator as CalcIcon, Flag,
+  ChevronLeft, ChevronRight, Send, CheckSquare,
+} from 'lucide-react';
 
-interface FormField {
-  id: string;
-  label: string;
-  type: string;
-  required?: boolean;
+// ─── Question nav panel ───────────────────────────────────────────
+function QuestionNavPanel({
+  questions,
+  currentIndex,
+  answers,
+  markedForReview,
+  onSelect,
+}: {
+  questions: { id: string }[];
+  currentIndex: number;
+  answers: Record<string, unknown>;
+  markedForReview: string[];
+  onSelect: (i: number) => void;
+}) {
+  function isAnswered(qId: string) {
+    const a = answers[qId];
+    return a !== undefined && a !== null && a !== '' && !(Array.isArray(a) && a.length === 0);
+  }
+
+  const answered = questions.filter(q => isAnswered(q.id)).length;
+  const marked = markedForReview.length;
+  const pending = questions.length - answered;
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Stats */}
+      <div className="px-3 py-3 border-b border-slate-200 space-y-1 text-xs">
+        <div className="flex justify-between text-gray-600">
+          <span>Respondidas</span>
+          <span className="font-semibold text-green-600">{answered}</span>
+        </div>
+        <div className="flex justify-between text-gray-600">
+          <span>Pendientes</span>
+          <span className="font-semibold text-gray-500">{pending}</span>
+        </div>
+        <div className="flex justify-between text-gray-600">
+          <span>Marcadas</span>
+          <span className="font-semibold text-amber-600">{marked}</span>
+        </div>
+      </div>
+
+      {/* Grid of question numbers */}
+      <div className="flex-1 overflow-y-auto p-3">
+        <div className="grid grid-cols-5 gap-1.5">
+          {questions.map((q, i) => {
+            const isAns = isAnswered(q.id);
+            const isMarked = markedForReview.includes(q.id);
+            const isCurrent = i === currentIndex;
+
+            let cls = 'relative flex items-center justify-center rounded text-xs font-semibold h-8 w-full cursor-pointer border transition-all select-none ';
+            if (isCurrent) {
+              cls += 'bg-blue-600 text-white border-blue-600 shadow-sm';
+            } else if (isAns && isMarked) {
+              cls += 'bg-amber-100 text-amber-800 border-amber-400';
+            } else if (isAns) {
+              cls += 'bg-green-100 text-green-800 border-green-400';
+            } else if (isMarked) {
+              cls += 'bg-amber-50 text-amber-700 border-amber-300';
+            } else {
+              cls += 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600';
+            }
+
+            return (
+              <button key={q.id} className={cls} onClick={() => onSelect(i)} title={`Pregunta ${i + 1}`}>
+                {i + 1}
+                {isMarked && (
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 border border-white" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="px-3 py-2 border-t border-slate-200 space-y-1">
+        {[
+          { color: 'bg-blue-600', label: 'Actual' },
+          { color: 'bg-green-100 border border-green-400', label: 'Respondida' },
+          { color: 'bg-amber-50 border border-amber-300', label: 'Marcada' },
+          { color: 'bg-white border border-gray-300', label: 'Pendiente' },
+        ].map(({ color, label }) => (
+          <div key={label} className="flex items-center gap-2 text-[10px] text-gray-500">
+            <span className={`inline-block w-3 h-3 rounded-sm ${color}`} />
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-interface FormTemplate {
-  schemaJson?: {
-    fields?: FormField[];
-  };
-}
-
+// ─── Main component ───────────────────────────────────────────────
 export function ExamenClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const attemptIdFromUrl = searchParams.get('attempt');
+  const router = useRouter();
 
   const {
     attemptId,
@@ -52,9 +130,9 @@ export function ExamenClient() {
     durationMinutes,
     calculatorEnabled,
     questions,
-    currentQuestionIndex,
     answers,
     markedForReview,
+    currentQuestionIndex,
     status,
     setAttempt,
     setCurrentQuestion,
@@ -63,18 +141,19 @@ export function ExamenClient() {
     reset,
   } = useSimulatorStore();
 
+  const [examTitle, setExamTitle] = useState('Simulador EXHCOBA');
+  const [result, setResult] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
-  const [formTemplate, setFormTemplate] = useState<FormTemplate | null>(null);
-  const [examTitle, setExamTitle] = useState('Simulador de Examen');
+  const [error, setError] = useState('');
   const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [showMobileNav, setShowMobileNav] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleSecurityEvent = useCallback(
     (type: SecurityEventType, details?: Record<string, unknown>) => {
-      if (!attemptId) return;
-      logSecurityEvent(attemptId, type, details).catch(() => {});
+      if (attemptId) logSecurityEvent(attemptId, type, details).catch(() => {});
     },
     [attemptId]
   );
@@ -84,33 +163,44 @@ export function ExamenClient() {
     onEvent: handleSecurityEvent,
   });
 
+  // Suppress unused variable warning
+  void isFullscreen;
+
+  const attemptIdFromUrl = searchParams.get('attempt');
+
+  // Init
   useEffect(() => {
     async function init() {
       try {
         if (attemptIdFromUrl) {
           const attempt = await fetchAttempt(attemptIdFromUrl);
-          const answersMap = Object.fromEntries(
-            (attempt.answers ?? []).map((a: { questionId: string; answerJson: unknown }) => [
-              a.questionId,
-              a.answerJson,
-            ])
-          );
-          setExamTitle(attempt.exam?.title ?? 'Examen');
+          setExamTitle(attempt.exam?.title ?? 'Simulador EXHCOBA');
+
           if (attempt.status === 'submitted' || attempt.status === 'expired') {
+            const answersMap = Object.fromEntries(
+              (attempt.answers ?? []).map((a: { questionId: string; answerJson: unknown }) => [
+                a.questionId, a.answerJson,
+              ])
+            );
             const res = await fetchResult(attemptIdFromUrl);
             setResult(res);
             setAttempt({
               attemptId: attempt.id,
               examId: attempt.examId,
               startedAt: attempt.startedAt,
-              durationMinutes: attempt.exam.durationMinutes,
-              totalScore: attempt.exam.totalScore,
-              calculatorEnabled: attempt.exam.calculatorEnabled ?? true,
-              questions: attempt.exam.questions,
+              durationMinutes: attempt.exam?.durationMinutes ?? 60,
+              totalScore: attempt.exam?.totalScore ?? 100,
+              calculatorEnabled: attempt.exam?.calculatorEnabled ?? true,
+              questions: attempt.exam?.questions ?? [],
               answers: answersMap,
               status: attempt.status,
             });
           } else {
+            const answersMap = Object.fromEntries(
+              (attempt.answers ?? []).map((a: { questionId: string; answerJson: unknown }) => [
+                a.questionId, a.answerJson,
+              ])
+            );
             const markedIds = (attempt.answers ?? [])
               .filter((a: { isMarkedForReview: boolean }) => a.isMarkedForReview)
               .map((a: { questionId: string }) => a.questionId);
@@ -118,16 +208,18 @@ export function ExamenClient() {
               attemptId: attempt.id,
               examId: attempt.examId,
               startedAt: attempt.startedAt,
-              durationMinutes: attempt.exam.durationMinutes,
-              totalScore: attempt.exam.totalScore,
-              calculatorEnabled: attempt.exam.calculatorEnabled ?? true,
-              questions: attempt.exam.questions,
+              durationMinutes: attempt.exam?.durationMinutes ?? 60,
+              totalScore: attempt.exam?.totalScore ?? 100,
+              calculatorEnabled: attempt.exam?.calculatorEnabled ?? true,
+              questions: attempt.exam?.questions ?? [],
               answers: answersMap,
               markedForReview: markedIds,
               status: attempt.status,
             });
-            const template = await fetchFormTemplate(attempt.examId);
-            setFormTemplate(template);
+            // Fetch form template if needed (non-critical)
+            if (attempt.examId) {
+              fetchFormTemplate(attempt.examId).catch(() => {});
+            }
             setShowFullscreenPrompt(true);
           }
         } else {
@@ -135,29 +227,29 @@ export function ExamenClient() {
           const list = Array.isArray(exams) ? exams : [];
           const exam = list.find((e: { isPublished: boolean }) => e.isPublished) ?? list[0];
           if (!exam) {
-            setError('No hay exámenes disponibles');
+            setError('No hay simuladores disponibles.');
             return;
           }
           const started = await startAttempt(exam.id);
           router.replace(`/examen?attempt=${started.id}`);
-          setExamTitle(started.exam?.title ?? exam.title ?? 'Examen');
+          setExamTitle(started.exam?.title ?? exam.title ?? 'Simulador EXHCOBA');
           setAttempt({
             attemptId: started.id,
             examId: started.examId,
             startedAt: started.startedAt,
-            durationMinutes: started.exam.durationMinutes,
-            totalScore: started.exam.totalScore,
-            calculatorEnabled: started.exam.calculatorEnabled ?? true,
-            questions: started.exam.questions,
+            durationMinutes: started.exam?.durationMinutes ?? exam.durationMinutes ?? 60,
+            totalScore: started.exam?.totalScore ?? exam.totalScore ?? 100,
+            calculatorEnabled: started.exam?.calculatorEnabled ?? exam.calculatorEnabled ?? true,
+            questions: started.exam?.questions ?? [],
             answers: {},
+            markedForReview: [],
             status: 'in_progress',
           });
-          const template = await fetchFormTemplate(started.examId);
-          setFormTemplate(template);
           setShowFullscreenPrompt(true);
         }
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al cargar');
+        setError(e instanceof Error ? e.message : 'No se pudo cargar el examen.');
+        console.error(e);
       } finally {
         setLoading(false);
       }
@@ -166,121 +258,106 @@ export function ExamenClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptIdFromUrl]);
 
-  const saveAnswerToApi = async (questionId: string, answerJson: unknown) => {
+  async function doSubmit() {
     if (!attemptId || status !== 'in_progress') return;
-    try {
-      await saveAnswer(attemptId, questionId, answerJson);
-    } catch {
-      // Silently fail, guardado local sigue activo
-    }
-  };
-
-  const handleToggleMarkForReview = async (questionId: string) => {
-    if (!attemptId || status !== 'in_progress') return;
-    const isMarked = markedForReview.includes(questionId);
-    toggleMarkForReview(questionId);
-    try {
-      await markForReview(attemptId, questionId, !isMarked);
-    } catch {
-      // Revert on failure
-      toggleMarkForReview(questionId);
-    }
-  };
-
-  const handleTimeExpire = async () => {
-    if (!attemptId || status !== 'in_progress') return;
-    try {
-      await submitAttempt(attemptId);
-      const res = await fetchResult(attemptId);
-      setResult(res);
-      setAttempt({ status: 'expired' });
-    } catch {
-      setError('Error al finalizar por tiempo');
-    }
-  };
-
-  const doSubmit = async () => {
-    if (!attemptId || status !== 'in_progress') return;
-    setShowReviewModal(false);
     try {
       await submitAttempt(attemptId);
       const res = await fetchResult(attemptId);
       setResult(res);
       setAttempt({ status: 'submitted' });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al enviar');
-    }
-  };
-
-  const handleSubmit = () => {
-    if (!attemptId || status !== 'in_progress') return;
-    setShowReviewModal(true);
-  };
-
-  const handleFormSubmit = async (payload: Record<string, unknown>) => {
-    if (!attemptId) return;
-    try {
-      await submitForm(attemptId, payload);
+      setShowReviewModal(false);
     } catch {
-      setError('Error al guardar formulario');
+      setError('Error al enviar el examen.');
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="text-slate-600">Cargando examen...</p>
-        </div>
-      </div>
-    );
   }
 
-  if (error) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8">
-        <p className="text-red-600">{error}</p>
-        <Button variant="outline" onClick={() => router.push('/')}>
+  function handleSubmit() {
+    if (status !== 'in_progress') return;
+    setShowReviewModal(true);
+  }
+
+  async function handleAnswer(questionId: string, value: unknown) {
+    setAnswer(questionId, value);
+    if (!attemptId || status !== 'in_progress') return;
+    setSaving(true);
+    try { await saveAnswer(attemptId, questionId, value); }
+    catch { /* silent */ }
+    finally { setTimeout(() => setSaving(false), 600); }
+  }
+
+  async function handleToggleMark() {
+    const q = questions[currentQuestionIndex];
+    if (!q || !attemptId || status !== 'in_progress') return;
+    const nowMarked = !markedForReview.includes(q.id);
+    toggleMarkForReview(q.id);
+    try { await markForReview(attemptId, q.id, nowMarked); }
+    catch {
+      // Revert on failure
+      toggleMarkForReview(q.id);
+    }
+  }
+
+  function handleExpire() {
+    if (!attemptId || status !== 'in_progress') return;
+    submitAttempt(attemptId)
+      .then(() => fetchResult(attemptId!).then(res => {
+        setResult(res);
+        setAttempt({ status: 'expired' });
+      }))
+      .catch(() => {});
+  }
+
+  // ── Computed ──
+  const currentQ = questions[currentQuestionIndex];
+  const isMarked = currentQ ? markedForReview.includes(currentQ.id) : false;
+
+  function isAnsweredCheck(qId: string) {
+    const a = answers[qId];
+    return a !== undefined && a !== null && a !== '' && !(Array.isArray(a) && a.length === 0);
+  }
+  const answeredCount = questions.filter(q => isAnsweredCheck(q.id)).length;
+  const totalQ = questions.length;
+
+  // ── Loading ──
+  if (loading) return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="text-center space-y-4">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto" />
+        <p className="text-gray-500 text-sm">Cargando simulador...</p>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="bg-white rounded-xl shadow p-8 text-center max-w-sm">
+        <p className="text-red-600 font-medium mb-4">{error}</p>
+        <button onClick={() => router.push('/')} className="text-blue-600 hover:underline text-sm">
           Volver al inicio
-        </Button>
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (result) {
+  // ── Results ──
+  if (result || status === 'submitted' || status === 'expired') {
     return (
       <ResultsView
         result={result}
-        questions={questions}
-        answers={answers}
         onRestart={() => { reset(); router.push('/'); }}
       />
     );
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const isFirst = currentQuestionIndex === 0;
-  const isLast = currentQuestionIndex === questions.length - 1;
-  const answeredCount = questions.filter((q) => {
-    const a = answers[q.id];
-    if (a === undefined || a === null || a === '') return false;
-    if (Array.isArray(a) && a.length === 0) return false;
-    return true;
-  }).length;
-  const formFields = formTemplate?.schemaJson?.fields ?? [];
-
   return (
     <>
-      <SecurityWarning message={warningMessage} visible={showWarning} />
+      {/* Overlays */}
+      <SecurityWarning visible={showWarning} message={warningMessage} />
 
-      {showFullscreenPrompt && !isFullscreen && (
+      {showFullscreenPrompt && (
         <FullscreenPrompt
           examTitle={examTitle}
-          onEnterFullscreen={() => {
-            requestFullscreen();
-            setShowFullscreenPrompt(false);
-          }}
+          onEnterFullscreen={() => { requestFullscreen(); setShowFullscreenPrompt(false); }}
           onSkip={() => setShowFullscreenPrompt(false)}
         />
       )}
@@ -290,110 +367,263 @@ export function ExamenClient() {
           questions={questions}
           answers={answers}
           markedForReview={markedForReview}
-          onClose={() => setShowReviewModal(false)}
-          onSubmit={doSubmit}
+          onConfirm={doSubmit}
+          onCancel={() => setShowReviewModal(false)}
         />
       )}
 
-    <main className="min-h-screen bg-slate-100">
-      <header className="sticky top-0 z-10 border-b bg-white px-4 py-3 shadow-sm">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-800">{examTitle}</h1>
-            <p className="text-xs text-slate-500">
-              {answeredCount} de {questions.length} respondidas
-            </p>
-          </div>
-          <Timer
-            startedAt={startedAt!}
-            durationMinutes={durationMinutes}
-            onExpire={handleTimeExpire}
-            expired={status !== 'in_progress'}
-          />
-          <Button onClick={handleSubmit} size="sm" disabled={status !== 'in_progress'}>
-            <Send className="mr-1 h-4 w-4" />
-            Enviar examen
-          </Button>
-        </div>
-        {/* Barra de progreso */}
-        <div className="mx-auto mt-2 max-w-7xl">
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-            <div
-              className="h-full rounded-full bg-blue-600 transition-all duration-300"
-              style={{ width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%` }}
-            />
+      {/* Mobile Nav Drawer */}
+      {showMobileNav && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowMobileNav(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl flex flex-col">
+            <div className="flex items-center justify-between px-4 h-14 border-b">
+              <span className="font-semibold text-gray-800">Preguntas</span>
+              <button onClick={() => setShowMobileNav(false)}>
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <QuestionNavPanel
+                questions={questions}
+                currentIndex={currentQuestionIndex}
+                answers={answers}
+                markedForReview={markedForReview}
+                onSelect={(i) => { setCurrentQuestion(i); setShowMobileNav(false); }}
+              />
+            </div>
           </div>
         </div>
-      </header>
+      )}
 
-      <div className="mx-auto grid max-w-7xl gap-4 p-4 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
-          <QuestionPanel />
-          <div className="flex items-center justify-between gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentQuestion(currentQuestionIndex - 1)}
-              disabled={isFirst}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Anterior
-            </Button>
-            <div className="flex items-center gap-2">
-              {currentQuestion && status === 'in_progress' && (
-                <Button
-                  variant={markedForReview.includes(currentQuestion.id) ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => handleToggleMarkForReview(currentQuestion.id)}
-                  className={markedForReview.includes(currentQuestion.id) ? 'bg-amber-500 hover:bg-amber-600' : ''}
-                >
-                  <Flag className="mr-1 h-4 w-4" />
-                  {markedForReview.includes(currentQuestion.id) ? 'Marcada' : 'Marcar'}
-                </Button>
+      {/* ── MAIN LAYOUT ── */}
+      <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
+
+        {/* ── HEADER ── */}
+        <header className="h-14 bg-slate-800 text-white flex items-center px-4 gap-4 flex-shrink-0 z-30 shadow-md">
+          {/* Mobile menu */}
+          <button
+            className="lg:hidden flex items-center justify-center w-8 h-8 rounded hover:bg-slate-700 transition-colors"
+            onClick={() => setShowMobileNav(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+
+          {/* Title */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="hidden sm:flex flex-col leading-tight">
+              <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">EXHCOBA</span>
+              <span className="text-sm font-semibold text-white truncate">{examTitle}</span>
+            </div>
+            <span className="sm:hidden text-sm font-semibold text-white truncate">{examTitle}</span>
+          </div>
+
+          {/* Progress (desktop) */}
+          <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-300 bg-slate-700 px-3 py-1.5 rounded-full">
+            <CheckSquare className="h-3.5 w-3.5 text-green-400" />
+            <span>{answeredCount}/{totalQ}</span>
+          </div>
+
+          {/* Saving indicator */}
+          {saving && (
+            <span className="hidden sm:block text-xs text-slate-400 animate-pulse">Guardando...</span>
+          )}
+
+          {/* Timer */}
+          {startedAt && (
+            <Timer
+              startedAt={startedAt}
+              durationMinutes={durationMinutes}
+              onExpire={handleExpire}
+              expired={status !== 'in_progress'}
+            />
+          )}
+
+          {/* Submit button */}
+          <button
+            onClick={handleSubmit}
+            disabled={status !== 'in_progress'}
+            className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Send className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Finalizar</span>
+          </button>
+        </header>
+
+        {/* ── BODY (3 columns) ── */}
+        <div className="flex flex-1 min-h-0">
+
+          {/* LEFT: Question navigator */}
+          <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 bg-white border-r border-slate-200 overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50">
+              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Navegación</p>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <QuestionNavPanel
+                questions={questions}
+                currentIndex={currentQuestionIndex}
+                answers={answers}
+                markedForReview={markedForReview}
+                onSelect={setCurrentQuestion}
+              />
+            </div>
+          </aside>
+
+          {/* CENTER: Question area */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-3xl mx-auto px-4 py-6 pb-8">
+              {currentQ ? (
+                <div className="space-y-6">
+                  {/* Question header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-600 text-white text-sm font-bold flex-shrink-0">
+                        {currentQuestionIndex + 1}
+                      </span>
+                      <div>
+                        <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                          Pregunta {currentQuestionIndex + 1} de {totalQ}
+                        </p>
+                      </div>
+                    </div>
+                    {status === 'in_progress' && (
+                      <button
+                        onClick={handleToggleMark}
+                        className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-all ${
+                          isMarked
+                            ? 'bg-amber-100 text-amber-700 border-amber-300'
+                            : 'bg-white text-gray-500 border-gray-300 hover:border-amber-300 hover:text-amber-600'
+                        }`}
+                      >
+                        <Flag className={`h-3.5 w-3.5 ${isMarked ? 'fill-amber-500 text-amber-500' : ''}`} />
+                        {isMarked ? 'Marcada' : 'Marcar'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Question card */}
+                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100">
+                      <p className="text-base text-gray-900 leading-relaxed font-medium">
+                        {currentQ.prompt}
+                      </p>
+                    </div>
+                    <div className="px-6 py-5">
+                      <QuestionRenderer
+                        question={currentQ}
+                        answer={answers[currentQ.id]}
+                        onAnswer={(v) => handleAnswer(currentQ.id, v)}
+                        onToggleMark={handleToggleMark}
+                        isMarked={isMarked}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Navigation buttons */}
+                  <div className="flex items-center justify-between pt-2">
+                    <button
+                      onClick={() => setCurrentQuestion(currentQuestionIndex - 1)}
+                      disabled={currentQuestionIndex === 0}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Anterior
+                    </button>
+
+                    {/* Mobile progress */}
+                    <div className="lg:hidden text-xs text-gray-500">
+                      {answeredCount}/{totalQ} resp.
+                    </div>
+
+                    <button
+                      onClick={() => setCurrentQuestion(currentQuestionIndex + 1)}
+                      disabled={currentQuestionIndex === totalQ - 1}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Siguiente
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center py-20 text-gray-400">
+                  No hay preguntas disponibles
+                </div>
               )}
-              <span className="text-sm text-slate-600">
-                Pregunta {currentQuestionIndex + 1} de {questions.length}
-              </span>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentQuestion(currentQuestionIndex + 1)}
-              disabled={isLast}
-            >
-              Siguiente
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          {currentQuestion && (
-            <QuestionRenderer
-              question={currentQuestion}
-              onAnswerSave={(qId, value) => {
-                setAnswer(qId, value);
-                saveAnswerToApi(qId, value);
-              }}
-            />
-          )}
-        </div>
+          </main>
 
-        <aside className="space-y-4">
-          <div className="rounded-lg border bg-white p-4">
-            <h3 className="mb-3 text-sm font-semibold text-slate-700">Formulario</h3>
-            {formFields.length > 0 ? (
-              <ExamForm fields={formFields} onSubmit={handleFormSubmit} />
-            ) : (
-              <p className="text-sm text-slate-500">Sin formulario configurado</p>
-            )}
-          </div>
-          {calculatorEnabled && (
-            <div className="rounded-lg border bg-white p-4">
-              <h3 className="mb-3 text-sm font-semibold text-slate-700">Calculadora</h3>
-              <Calculator />
+          {/* RIGHT: Tools panel */}
+          <aside className="hidden xl:flex flex-col w-60 flex-shrink-0 bg-white border-l border-slate-200">
+            <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50">
+              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Herramientas</p>
             </div>
-          )}
-        </aside>
+
+            <div className="p-4 space-y-4">
+              {/* Progress summary */}
+              <div className="rounded-lg border border-slate-200 overflow-hidden">
+                <div className="bg-slate-50 px-3 py-2 border-b border-slate-200">
+                  <p className="text-xs font-semibold text-slate-600">Progreso del examen</p>
+                </div>
+                <div className="p-3 space-y-2">
+                  {[
+                    { label: 'Total', value: totalQ, color: 'text-gray-700' },
+                    { label: 'Respondidas', value: answeredCount, color: 'text-green-600' },
+                    { label: 'Pendientes', value: totalQ - answeredCount, color: 'text-gray-500' },
+                    { label: 'Marcadas', value: markedForReview.length, color: 'text-amber-600' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">{label}</span>
+                      <span className={`font-semibold ${color}`}>{value}</span>
+                    </div>
+                  ))}
+                  {/* Progress bar */}
+                  <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-500 rounded-full transition-all duration-300"
+                      style={{ width: totalQ > 0 ? `${(answeredCount / totalQ) * 100}%` : '0%' }}
+                    />
+                  </div>
+                  <p className="text-center text-xs text-gray-400">
+                    {totalQ > 0 ? Math.round((answeredCount / totalQ) * 100) : 0}% completado
+                  </p>
+                </div>
+              </div>
+
+              {/* Calculator */}
+              {calculatorEnabled && (
+                <div>
+                  <button
+                    onClick={() => setShowCalculator(!showCalculator)}
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg border transition-all ${
+                      showCalculator
+                        ? 'bg-blue-50 text-blue-700 border-blue-300'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-blue-300'
+                    }`}
+                  >
+                    <CalcIcon className="h-4 w-4" />
+                    {showCalculator ? 'Cerrar calculadora' : 'Abrir calculadora'}
+                  </button>
+                  {showCalculator && (
+                    <div className="mt-3">
+                      <Calculator />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Instructions */}
+              <div className="rounded-lg border border-slate-200 p-3 text-xs text-gray-500 space-y-1.5">
+                <p className="font-semibold text-gray-600">Instrucciones</p>
+                <p>• Selecciona una respuesta por pregunta</p>
+                <p>• Usa <strong>Marcar</strong> para revisar después</p>
+                <p>• Las respuestas se guardan automáticamente</p>
+                <p>• Revisa antes de finalizar</p>
+              </div>
+            </div>
+          </aside>
+        </div>
       </div>
-    </main>
     </>
   );
 }

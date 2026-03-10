@@ -1,117 +1,86 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
-type Operator = '+' | '-' | '×' | '÷' | '%';
-
-function applyOperator(a: number, b: number, op: Operator): number | null {
-  switch (op) {
-    case '+':
-      return a + b;
-    case '-':
-      return a - b;
-    case '×':
-      return a * b;
-    case '÷':
-      return b === 0 ? null : a / b;
-    case '%':
-      return a % b;
-    default:
-      return null;
-  }
-}
-
-const BUTTONS = [
-  ['C', '±', '%', '÷'],
-  ['7', '8', '9', '×'],
-  ['4', '5', '6', '-'],
-  ['1', '2', '3', '+'],
-  ['0', '.', '='],
-];
+type CalcOp = '+' | '-' | '×' | '÷' | '%' | null;
 
 export function Calculator() {
   const [display, setDisplay] = useState('0');
-  const [pendingOp, setPendingOp] = useState<Operator | null>(null);
-  const [prevValue, setPrevValue] = useState<number | null>(null);
+  const [prev, setPrev] = useState<string | null>(null);
+  const [op, setOp] = useState<CalcOp>(null);
+  const [fresh, setFresh] = useState(false);
 
-  const handleInput = useCallback(
-    (key: string) => {
-      if (key === 'C') {
-        setDisplay('0');
-        setPendingOp(null);
-        setPrevValue(null);
-        return;
-      }
-      if (key === '±') {
-        setDisplay((d) => (d.startsWith('-') ? d.slice(1) : d === '0' ? '0' : '-' + d));
-        return;
-      }
-      if (key === '=') {
-        if (pendingOp && prevValue !== null) {
-          const current = parseFloat(display.replace(',', '.'));
-          if (!Number.isNaN(current)) {
-            const result = applyOperator(prevValue, current, pendingOp);
-            if (result !== null) {
-              setDisplay(String(result));
-              setPendingOp(null);
-              setPrevValue(null);
-            }
-          }
-        }
-        return;
-      }
-      if (['+', '-', '×', '÷', '%'].includes(key)) {
-        const current = parseFloat(display.replace(',', '.'));
-        if (!Number.isNaN(current)) {
-          if (pendingOp && prevValue !== null) {
-            const result = applyOperator(prevValue, current, pendingOp);
-            if (result !== null) {
-              setDisplay(String(result));
-              setPrevValue(result);
-            }
-          } else {
-            setPrevValue(current);
-          }
-          setPendingOp(key as Operator);
-        }
-        return;
-      }
-      if (key === '.') {
-        if (!display.includes('.')) setDisplay((d) => d + '.');
-        return;
-      }
-      setDisplay((d) => (d === '0' && key !== '.' ? key : d + key));
-    },
-    [pendingOp, prevValue, display]
-  );
+  function input(v: string) {
+    if (fresh) { setDisplay(v === '.' ? '0.' : v); setFresh(false); return; }
+    if (v === '.' && display.includes('.')) return;
+    setDisplay(display === '0' && v !== '.' ? v : display + v);
+  }
+
+  function setOperator(o: CalcOp) {
+    setPrev(display);
+    setOp(o);
+    setFresh(true);
+  }
+
+  function compute() {
+    if (!op || prev === null) return;
+    const a = parseFloat(prev), b = parseFloat(display);
+    let r = 0;
+    if (op === '+') r = a + b;
+    else if (op === '-') r = a - b;
+    else if (op === '×') r = a * b;
+    else if (op === '÷') r = b !== 0 ? a / b : 0;
+    else if (op === '%') r = a % b;
+    const str = String(parseFloat(r.toFixed(10)));
+    setDisplay(str);
+    setPrev(null);
+    setOp(null);
+    setFresh(true);
+  }
+
+  function clear() { setDisplay('0'); setPrev(null); setOp(null); setFresh(false); }
+  function toggle() { setDisplay(String(parseFloat(display) * -1)); }
+
+  const btn = (label: string, action: () => void, variant: 'default' | 'op' | 'eq' | 'fn' = 'default') => {
+    const base = 'h-10 w-full rounded-lg text-sm font-semibold transition-all active:scale-95 ';
+    const variants = {
+      default: 'bg-slate-100 hover:bg-slate-200 text-slate-800',
+      fn: 'bg-slate-200 hover:bg-slate-300 text-slate-700',
+      op: op === label ? 'bg-blue-600 text-white' : 'bg-blue-100 hover:bg-blue-200 text-blue-700',
+      eq: 'bg-blue-600 hover:bg-blue-700 text-white',
+    };
+    return (
+      <button key={label} onClick={action} className={base + variants[variant]}>
+        {label}
+      </button>
+    );
+  };
 
   return (
-    <div className="rounded-lg border bg-slate-50 p-3">
-      <div className="mb-2 text-right font-mono text-2xl font-medium tabular-nums">
-        {display}
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      {/* Display */}
+      <div className="bg-slate-800 px-4 py-3 text-right">
+        {op && prev && (
+          <p className="text-xs text-slate-400 mb-0.5">{prev} {op}</p>
+        )}
+        <p className="text-2xl font-mono font-bold text-white truncate">{display}</p>
       </div>
-      <div className="space-y-1">
-        {BUTTONS.map((row, i) => (
-          <div
-            key={i}
-            className="grid gap-1"
-            style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}
-          >
-            {row.map((k) => (
-              <Button
-                key={k}
-                variant="secondary"
-                size="sm"
-                className={cn('font-mono', k === '0' && 'col-span-2')}
-                onClick={() => handleInput(k)}
-              >
-                {k}
-              </Button>
-            ))}
-          </div>
-        ))}
+      {/* Buttons */}
+      <div className="p-2 grid grid-cols-4 gap-1.5">
+        {btn('C', clear, 'fn')}
+        {btn('±', toggle, 'fn')}
+        {btn('%', () => setOperator('%'), 'fn')}
+        {btn('÷', () => setOperator('÷'), 'op')}
+        {['7', '8', '9'].map(n => btn(n, () => input(n)))}
+        {btn('×', () => setOperator('×'), 'op')}
+        {['4', '5', '6'].map(n => btn(n, () => input(n)))}
+        {btn('-', () => setOperator('-'), 'op')}
+        {['1', '2', '3'].map(n => btn(n, () => input(n)))}
+        {btn('+', () => setOperator('+'), 'op')}
+        {btn('0', () => input('0'))}
+        {btn('.', () => input('.'))}
+        {btn('⌫', () => setDisplay(display.length > 1 ? display.slice(0, -1) : '0'), 'fn')}
+        {btn('=', compute, 'eq')}
       </div>
     </div>
   );
