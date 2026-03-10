@@ -1,8 +1,10 @@
+import math
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Body
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, require_admin
@@ -22,7 +24,28 @@ from app.services.exam_generator import generate_for_section
 router = APIRouter()
 
 
-@router.get("/", response_model=list[QuestionPublicSchema])
+class ReorderItem(BaseModel):
+    question_id: str
+    order_index: int
+
+
+class ReorderBody(BaseModel):
+    questions: List[ReorderItem]
+
+
+@router.put("/reorder")
+def reorder_questions(body: ReorderBody, db: Session = Depends(get_db), _: User = Depends(require_admin)):
+    updated = 0
+    for item in body.questions:
+        q = db.query(Question).filter(Question.id == item.question_id).first()
+        if q:
+            q.order_index = item.order_index
+            updated += 1
+    db.commit()
+    return {"updated": updated}
+
+
+@router.get("/")
 def list_questions(
     materia: Optional[str] = None,
     tema: Optional[str] = None,
@@ -31,6 +54,8 @@ def list_questions(
     bank_only: bool = False,
     limit: int = 100,
     offset: int = 0,
+    page: int = 1,
+    page_size: Optional[int] = None,
     db: Session = Depends(get_db),
 ):
     query = db.query(Question)
@@ -44,7 +69,19 @@ def list_questions(
         query = query.filter(Question.exam_id == exam_id)
     if bank_only:
         query = query.filter(Question.exam_id.is_(None))
-    return query.order_by(Question.order_index).offset(offset).limit(limit).all()
+    query = query.order_by(Question.order_index)
+    if page_size is not None:
+        total = query.count()
+        pages = math.ceil(total / page_size) if page_size > 0 else 1
+        items = query.offset((page - 1) * page_size).limit(page_size).all()
+        return {
+            "items": [QuestionPublicSchema.model_validate(q) for q in items],
+            "total": total,
+            "page": page,
+            "pages": pages,
+            "page_size": page_size,
+        }
+    return query.offset(offset).limit(limit).all()
 
 
 @router.get("/{question_id}", response_model=QuestionPublicSchema)

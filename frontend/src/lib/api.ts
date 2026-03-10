@@ -324,3 +324,57 @@ export async function fetchMyAttempts(token: string) {
   if (!res.ok) throw new Error('Error al cargar historial');
   return res.json();
 }
+
+// ── Admin: Users management ────────────────────────────────────────
+export async function fetchAdminUsers(token: string, page = 1, pageSize = 20, search = '') {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  if (search) params.set('search', search);
+  const res = await fetch(`${API_URL}/api/admin/users?${params}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Error cargando usuarios');
+  return res.json();
+}
+
+export async function adminResetUserPassword(token: string, userId: string, newPassword: string) {
+  const res = await fetch(`${API_URL}/api/admin/users/${userId}/password`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ new_password: newPassword }),
+  });
+  if (!res.ok) throw new Error('Error al resetear contraseña');
+  return res.json();
+}
+
+export async function adminUpdateUserRole(token: string, userId: string, role: string) {
+  const res = await fetch(`${API_URL}/api/admin/users/${userId}/role`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ role }),
+  });
+  if (!res.ok) throw new Error('Error al actualizar rol');
+  return res.json();
+}
+
+export async function changeMyPassword(token: string, currentPassword: string, newPassword: string) {
+  const res = await fetch(`${API_URL}/api/auth/me/password`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail ?? 'Error al cambiar contraseña');
+  }
+  return res.json();
+}
+
+export async function reorderQuestions(token: string, questions: { question_id: string; order_index: number }[]) {
+  const res = await fetch(`${API_URL}/api/questions/reorder`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ questions }),
+  });
+  if (!res.ok) throw new Error('Error al reordenar');
+  return res.json();
+}

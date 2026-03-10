@@ -12,6 +12,7 @@ import {
   Settings,
   ExternalLink,
   LogOut,
+  Users,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,7 @@ const NAV_LINKS = [
   { label: 'Banco de preguntas', icon: Database, href: '/admin/questions' },
   { label: 'Intentos', icon: ClipboardList, href: '/admin/attempts' },
   { label: 'Estadísticas', icon: BarChart3, href: '/admin/analytics' },
+  { label: 'Usuarios', icon: Users, href: '/admin/users' },
   { label: 'Configuración', icon: Settings, href: '/admin/config' },
 ];
 
@@ -61,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Nav links */}
         <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
           {NAV_LINKS.map(({ label, icon: Icon, href }) => (
-            (user.role === 'admin' || href !== '/admin/config') && (
+            (user.role === 'admin' || (href !== '/admin/config' && href !== '/admin/users')) && (
               <Link
                 key={href}
                 href={href}

@@ -68,7 +68,8 @@
       "Bash(pip install -q -r requirements-test.txt)",
       "Bash(python -m pytest tests/ -v --tb=short)",
       "Bash(npm install --save-dev @types/jest)",
-      "Bash(npx jest)"
+      "Bash(npx jest)",
+      "Bash(python -m pytest tests/ -q)"
     ]
   }
 }

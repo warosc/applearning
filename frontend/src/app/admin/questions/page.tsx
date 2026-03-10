@@ -15,9 +15,9 @@ import {
   SortingState,
   ColumnFiltersState,
 } from '@tanstack/react-table';
-import { adminCreateQuestion, adminUpdateQuestion, adminDeleteQuestion, adminDuplicateQuestion } from '@/lib/api';
+import { adminCreateQuestion, adminUpdateQuestion, adminDeleteQuestion, adminDuplicateQuestion, reorderQuestions } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
-import { Pencil, Copy, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { Pencil, Copy, Trash2, X, ChevronUp, ChevronDown, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MATERIAS = ['Matemáticas', 'Español', 'Ciencias', 'Historia', 'Inglés', 'Geografía'];
@@ -379,6 +379,10 @@ export default function QuestionBankPage() {
   const [bankOnly, setBankOnly] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [reorderMode, setReorderMode] = useState(false);
+  const [dragData, setDragData] = useState<Question[]>([]);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
@@ -439,6 +443,46 @@ export default function QuestionBankPage() {
     if (!typeFilter) return questions;
     return questions.filter((q) => q.type === typeFilter);
   }, [questions, typeFilter]);
+
+  function enterReorderMode() {
+    setDragData([...filteredByType]);
+    setReorderMode(true);
+  }
+
+  function handleDragStart(index: number) {
+    setDragIndex(index);
+  }
+
+  function handleDragOver(e: React.DragEvent, index: number) {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === index) return;
+    setDragData(prev => {
+      const next = [...prev];
+      const [removed] = next.splice(dragIndex, 1);
+      next.splice(index, 0, removed);
+      return next;
+    });
+    setDragIndex(index);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragIndex(null);
+  }
+
+  async function saveOrder() {
+    setSavingOrder(true);
+    try {
+      const payload = dragData.map((q, i) => ({ question_id: q.id, order_index: i }));
+      await reorderQuestions(token, payload);
+      setReorderMode(false);
+      await load();
+    } catch {
+      alert('Error al guardar el orden');
+    } finally {
+      setSavingOrder(false);
+    }
+  }
 
   const columns = useMemo<ColumnDef<Question>[]>(
     () => [
@@ -590,6 +634,13 @@ export default function QuestionBankPage() {
             Importar
           </Link>
           <button
+            onClick={enterReorderMode}
+            className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5"
+          >
+            <GripVertical className="h-4 w-4 text-gray-400" />
+            Reordenar
+          </button>
+          <button
             onClick={() => { setEditingQuestion(null); setDialogOpen(true); }}
             className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
           >
@@ -598,110 +649,160 @@ export default function QuestionBankPage() {
         </div>
       </div>
 
-      {/* Filters bar */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <input
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder="Buscar por enunciado..."
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-60 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          value={materiaFilter}
-          onChange={(e) => setMateriaFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todas las materias</option>
-          {MATERIAS.map((m) => (
-            <option key={m} value={m}>
-              {m}
-            </option>
-          ))}
-        </select>
-        <select
-          value={difficultyFilter}
-          onChange={(e) => setDifficultyFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Toda dificultad</option>
-          {DIFFICULTIES.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todos los tipos</option>
-          {TIPOS.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={bankOnly}
-            onChange={(e) => setBankOnly(e.target.checked)}
-            className="accent-blue-600"
-          />
-          Solo banco
-        </label>
-      </div>
-
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-
-      {loading ? (
-        <Spinner />
-      ) : filteredByType.length === 0 ? (
-        <div className="rounded-xl border bg-white p-12 shadow-sm text-center">
-          <p className="text-gray-500 mb-4">No hay preguntas con estos filtros.</p>
-          <button
-            onClick={() => { setEditingQuestion(null); setDialogOpen(true); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
-          >
-            Crear primera pregunta
-          </button>
+      {/* Reorder mode overlay */}
+      {reorderMode && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+            <p className="text-sm text-amber-800 font-medium">Modo reordenar: arrastra las filas para cambiar el orden</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setReorderMode(false)}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 bg-white"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveOrder}
+                disabled={savingOrder}
+                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                {savingOrder ? 'Guardando...' : 'Guardar orden'}
+              </button>
+            </div>
+          </div>
+          <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
+            {dragData.map((q, i) => (
+              <div
+                key={q.id}
+                draggable
+                onDragStart={() => handleDragStart(i)}
+                onDragOver={(e) => handleDragOver(e, i)}
+                onDrop={handleDrop}
+                className={`flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-0 cursor-grab active:cursor-grabbing hover:bg-gray-50 ${dragIndex === i ? 'bg-blue-50 opacity-70' : ''}`}
+              >
+                <GripVertical className="h-4 w-4 text-gray-400 shrink-0" />
+                <span className="text-xs text-gray-400 w-6 shrink-0">{i + 1}</span>
+                <span className="text-sm text-gray-700 flex-1 truncate">{q.prompt}</span>
+                {q.materia && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0">{q.materia}</span>
+                )}
+                <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${DIFFICULTY_BADGE[q.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {q.difficulty}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      ) : (
-        <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              {table.getHeaderGroups().map((hg) => (
-                <tr key={hg.id} className="border-b bg-gray-50">
-                  {hg.headers.map((header) => (
-                    <th key={header.id} className="px-4 py-3 text-left font-medium text-gray-700">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
+      )}
+
+      {/* Filters bar + table — hidden in reorder mode */}
+      {!reorderMode && (
+        <>
+          <div className="flex flex-wrap gap-3 items-center">
+            <input
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Buscar por enunciado..."
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-60 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <select
+              value={materiaFilter}
+              onChange={(e) => setMateriaFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todas las materias</option>
+              {MATERIAS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
               ))}
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-400">
-                    Sin resultados para tu búsqueda.
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50">
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </select>
+            <select
+              value={difficultyFilter}
+              onChange={(e) => setDifficultyFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Toda dificultad</option>
+              {DIFFICULTIES.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Todos los tipos</option>
+              {TIPOS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={bankOnly}
+                onChange={(e) => setBankOnly(e.target.checked)}
+                className="accent-blue-600"
+              />
+              Solo banco
+            </label>
+          </div>
+
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          {loading ? (
+            <Spinner />
+          ) : filteredByType.length === 0 ? (
+            <div className="rounded-xl border bg-white p-12 shadow-sm text-center">
+              <p className="text-gray-500 mb-4">No hay preguntas con estos filtros.</p>
+              <button
+                onClick={() => { setEditingQuestion(null); setDialogOpen(true); }}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+              >
+                Crear primera pregunta
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
+              <table className="w-full text-sm">
+                <thead>
+                  {table.getHeaderGroups().map((hg) => (
+                    <tr key={hg.id} className="border-b bg-gray-50">
+                      {hg.headers.map((header) => (
+                        <th key={header.id} className="px-4 py-3 text-left font-medium text-gray-700">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {table.getRowModel().rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-400">
+                        Sin resultados para tu búsqueda.
                       </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </tr>
+                  ) : (
+                    table.getRowModel().rows.map((row) => (
+                      <tr key={row.id} className="hover:bg-gray-50">
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} className="px-4 py-3">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

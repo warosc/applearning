@@ -1,6 +1,7 @@
+import math
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -26,9 +27,25 @@ from app.schemas.question import QuestionPublicSchema
 router = APIRouter()
 
 
-@router.get("/", response_model=list[ExamSimpleSchema])
-def list_exams(db: Session = Depends(get_db)):
-    return db.query(Exam).order_by(Exam.created_at.desc()).all()
+@router.get("/")
+def list_exams(
+    page: int = 1,
+    page_size: Optional[int] = None,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Exam).order_by(Exam.created_at.desc())
+    if page_size is not None:
+        total = query.count()
+        pages = math.ceil(total / page_size) if page_size > 0 else 1
+        items = query.offset((page - 1) * page_size).limit(page_size).all()
+        return {
+            "items": [ExamSimpleSchema.model_validate(e) for e in items],
+            "total": total,
+            "page": page,
+            "pages": pages,
+            "page_size": page_size,
+        }
+    return query.all()
 
 
 @router.get("/{exam_id}", response_model=ExamSchema)

@@ -41,6 +41,7 @@ export function HomeClient() {
             <Link href="/historial" className="text-blue-600 hover:text-blue-800">
               Mi historial
             </Link>
+            <Link href="/perfil" className="text-sm text-gray-500 hover:text-gray-700">Mi perfil</Link>
             {user.role === 'admin' && (
               <Link href="/admin" className="flex items-center gap-1 text-blue-600 hover:text-blue-800">
                 <Settings className="h-4 w-4" />

@@ -21,6 +21,11 @@ class RegisterRequest(BaseModel):
     email: Optional[str] = None
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=6)
+
+
 router = APIRouter()
 
 # Simple in-memory rate limiter: {ip: [timestamp, ...]}
@@ -113,3 +118,20 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
             role=user.role,
         ),
     )
+
+
+@router.patch("/me/password")
+def change_own_password(
+    body: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not verify_password(body.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Contraseña actual incorrecta",
+        )
+    current_user.password_hash = hash_password(body.new_password)
+    current_user.updated_at = datetime.utcnow()
+    db.commit()
+    return {"ok": True}

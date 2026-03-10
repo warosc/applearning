@@ -1,4 +1,21 @@
+import re
 from typing import Any, Optional
+
+
+def normalize_algebraic(expr: str) -> str:
+    """Normalize algebraic expressions for comparison."""
+    if not expr:
+        return ""
+    s = str(expr).strip().lower()
+    # Remove all whitespace
+    s = re.sub(r'\s+', '', s)
+    # Normalize power notation: ** -> ^
+    s = s.replace('**', '^')
+    # Sort additive terms for commutativity: x+1 == 1+x
+    if '+' in s and '-' not in s:
+        terms = sorted(s.split('+'))
+        s = '+'.join(terms)
+    return s
 
 
 def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
@@ -41,7 +58,7 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
         correct_option = next((opt for opt in options if opt.is_correct), None)
         if correct_option is None:
             return False, 0.0
-        is_correct = str(answer_json).strip().lower() == correct_option.value.strip().lower()
+        is_correct = normalize_algebraic(str(answer_json)) == normalize_algebraic(correct_option.value)
         return is_correct, question.score if is_correct else 0.0
 
     elif question.type == "drag_drop":
