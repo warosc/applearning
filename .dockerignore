@@ -1,0 +1,43 @@
+# Dependencies
+**/node_modules
+**/.pnp
+**/.pnp.js
+
+# Build outputs
+backend/dist
+frontend/.next
+frontend/out
+
+# Git
+.git
+.gitignore
+
+# Logs
+**/*.log
+**/npm-debug.log*
+
+# Test / coverage
+**/coverage
+**/.nyc_output
+
+# IDE
+.vscode
+.idea
+**/*.swp
+**/*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files (use docker env vars instead)
+**/.env
+**/.env.local
+**/.env.production.local
+
+# Prisma generated (regenerated at build)
+backend/prisma/generated
+
+# Misc
+**/.cache
+**/.turbo

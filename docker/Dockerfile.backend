@@ -1,0 +1,54 @@
+FROM node:20-alpine AS builder
+WORKDIR /app
+RUN apk add --no-cache openssl
+COPY backend/package*.json ./
+COPY backend/ ./
+RUN npm install
+RUN npx prisma generate
+RUN npm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+RUN apk add --no-cache openssl
+
+# Run as non-root for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/package*.json ./
+COPY --chown=appuser:appgroup backend/prisma ./prisma
+
+ENV NODE_ENV=production
+ENV TS_NODE_COMPILER_OPTIONS='{"module":"CommonJS"}'
+
+# Generate start script inside the image to avoid CRLF issues on Windows hosts
+RUN printf '#!/bin/sh\nset -e\n\necho ">> Aplicando migraciones..."\nnpx prisma migrate deploy\n\necho ">> Verificando datos iniciales..."\nnode -e "\
+const {PrismaClient} = require('"'"'@prisma/client'"'"');\
+const {execSync} = require('"'"'child_process'"'"');\
+const p = new PrismaClient();\
+p.exam.count()\
+.then(n => {\
+  if (n === 0) {\
+    console.log('"'"'>> Seed: base vacia, ejecutando seed...'"'"');\
+    execSync('"'"'npx ts-node prisma/seed.ts'"'"', {stdio: '"'"'inherit'"'"'});\
+    console.log('"'"'>> Seed completado.'"'"');\
+  } else {\
+    console.log('"'"'>> Seed: ya existen datos, omitiendo.'"'"');\
+  }\
+})\
+.catch(e => console.warn('"'"'>> Seed check fallo:'"'"', e.message))\
+.finally(() => p.\$disconnect());\
+"\n\necho ">> Iniciando servidor NestJS..."\nexec node dist/src/main.js\n' > /app/start.sh \
+  && chmod +x /app/start.sh \
+  && chown appuser:appgroup /app/start.sh
+
+USER appuser
+
+EXPOSE 4000
+
+# /api/config/public is decorated @Public() — returns 200 without auth
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:4000/api/config/public > /dev/null 2>&1 || exit 1
+
+CMD ["/app/start.sh"]

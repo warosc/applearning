@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  username      String         @unique
+  passwordHash  String
+  email         String?        @unique
+  name          String?
+  role          String         @default("estudiante")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  examAttempts  ExamAttempt[]
+}
+
+model Exam {
+  id                String           @id @default(uuid())
+  title             String
+  description       String?
+  totalScore        Int              @default(100)
+  durationMinutes   Int              @default(60)
+  isPublished       Boolean          @default(false)
+  calculatorEnabled Boolean          @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  sections        ExamSection[]
+  questions       Question[]
+  examAttempts    ExamAttempt[]
+  formTemplates   FormTemplate[]
+}
+
+model ExamSection {
+  id        String     @id @default(uuid())
+  examId    String
+  exam      Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
+  title     String
+  orderIndex Int       @default(0)
+  questions Question[]
+}
+
+model Question {
+  id           String          @id @default(uuid())
+  examId       String
+  exam         Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  sectionId    String?
+  section      ExamSection?   @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  orderIndex   Int             @default(0)
+  type         String
+  prompt       String
+  score        Float           @default(1)
+  metadataJson Json?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  options      QuestionOption[]
+  answers      Answer[]
+}
+
+model QuestionOption {
+  id          String   @id @default(uuid())
+  questionId  String
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  label       String
+  value       String
+  isCorrect   Boolean  @default(false)
+  orderIndex  Int      @default(0)
+  metadataJson Json?
+}
+
+model ExamAttempt {
+  id              String         @id @default(uuid())
+  examId          String
+  exam            Exam           @relation(fields: [examId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  startedAt      DateTime       @default(now())
+  submittedAt     DateTime?
+  timeSpentSeconds Int?
+  status          String         @default("in_progress")
+  scoreObtained   Float?
+  percentage      Float?
+  answers         Answer[]
+  formSubmission  FormSubmission?
+}
+
+model Answer {
+  id            String      @id @default(uuid())
+  attemptId     String
+  attempt       ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId    String
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  answerJson          Json
+  isCorrect           Boolean?
+  scoreObtained       Float?
+  isMarkedForReview   Boolean   @default(false)
+  answeredAt          DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model FormTemplate {
+  id        String   @id @default(uuid())
+  examId    String   @unique
+  exam      Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  title     String   @default("Datos del estudiante")
+  schemaJson Json
+}
+
+model FormSubmission {
+  id        String      @id @default(uuid())
+  attemptId String     @unique
+  attempt   ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  payloadJson Json
+}
+
+model CalculatorSetting {
+  id        String   @id @default(uuid())
+  examId    String?  @unique
+  allowedOps Json?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
