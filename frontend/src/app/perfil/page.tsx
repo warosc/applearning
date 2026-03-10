@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { changeMyPassword } from '@/lib/api';
@@ -18,7 +18,11 @@ export default function PerfilPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  if (!token || !user) { router.replace('/login'); return null; }
+  useEffect(() => {
+    if (!token || !user) router.replace('/login');
+  }, [token, user, router]);
+
+  if (!token || !user) return null;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
