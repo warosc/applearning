@@ -2,9 +2,9 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: simulador_examen
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-simulador_examen}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -35,7 +35,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.backend-py
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/simulador_examen
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-simulador_examen}
       REDIS_URL: redis://redis:6379
       PORT: 4000
       JWT_SECRET: ${JWT_SECRET:-simulador-dev-secret-do-not-use-in-production}
