@@ -24,8 +24,15 @@ const FIELD_TYPES = [
   { value: 'checkbox', label: 'Casillas de verificación' },
 ];
 
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
 function newField(): FormField {
-  return { id: crypto.randomUUID(), label: '', type: 'text', required: false };
+  return { id: generateId(), label: '', type: 'text', required: false };
 }
 
 export function FormTemplateEditor({ initialFields, onSave, saving }: Props) {
