@@ -1,6 +1,6 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
-ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ARG NEXT_PUBLIC_API_URL=""
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 COPY frontend/package*.json ./
 RUN npm install
@@ -16,6 +16,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV BACKEND_URL=http://backend:4000
 # Bind to all interfaces — required so the container is reachable inside the Docker network
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
