@@ -19,11 +19,12 @@ interface Exam {
   id: string;
   title: string;
   description: string;
-  totalScore: number;
-  durationMinutes: number;
-  isPublished: boolean;
+  // backend returns snake_case
+  total_score: number;
+  duration_minutes: number;
+  is_published: boolean;
   sections?: unknown[];
-  createdAt: string;
+  created_at: string;
 }
 
 function Spinner() {
@@ -56,16 +57,17 @@ export default function AdminExamsPage() {
   useEffect(() => { load(); }, []);
 
   async function togglePublish(exam: Exam) {
+    const next = !exam.is_published;
     // Optimistic update
     setExams((prev) =>
-      prev.map((e) => (e.id === exam.id ? { ...e, isPublished: !e.isPublished } : e)),
+      prev.map((e) => (e.id === exam.id ? { ...e, is_published: next } : e)),
     );
     try {
-      await adminUpdateExam(token, exam.id, { isPublished: !exam.isPublished });
+      await adminUpdateExam(token, exam.id, { is_published: next });
     } catch {
       // Revert on error
       setExams((prev) =>
-        prev.map((e) => (e.id === exam.id ? { ...e, isPublished: exam.isPublished } : e)),
+        prev.map((e) => (e.id === exam.id ? { ...e, is_published: exam.is_published } : e)),
       );
       alert('Error al cambiar estado');
     }
@@ -119,12 +121,12 @@ export default function AdminExamsPage() {
         ),
       },
       {
-        accessorKey: 'durationMinutes',
+        accessorKey: 'duration_minutes',
         header: 'Duración',
         cell: ({ getValue }) => <span className="text-gray-600">{getValue<number>()} min</span>,
       },
       {
-        accessorKey: 'totalScore',
+        accessorKey: 'total_score',
         header: 'Puntaje',
         cell: ({ getValue }) => <span className="text-gray-600">{getValue<number>()} pts</span>,
       },
@@ -136,18 +138,18 @@ export default function AdminExamsPage() {
         ),
       },
       {
-        accessorKey: 'isPublished',
+        accessorKey: 'is_published',
         header: 'Estado',
         cell: ({ row }) => (
           <button
             onClick={() => togglePublish(row.original)}
             className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${
-              row.original.isPublished
+              row.original.is_published
                 ? 'bg-green-100 text-green-700 hover:bg-green-200'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            {row.original.isPublished ? 'Publicado' : 'Borrador'}
+            {row.original.is_published ? 'Publicado' : 'Borrador'}
           </button>
         ),
       },

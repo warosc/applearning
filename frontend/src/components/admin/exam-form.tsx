@@ -2,30 +2,47 @@
 
 import { useState } from 'react';
 
+// Backend uses snake_case; support both when reading initialData
 interface ExamData {
-  title: string;
-  description: string;
-  totalScore: number;
-  durationMinutes: number;
-  isPublished: boolean;
+  title?: string;
+  description?: string;
+  total_score?: number;
+  totalScore?: number;
+  duration_minutes?: number;
+  durationMinutes?: number;
+  is_published?: boolean;
+  isPublished?: boolean;
 }
 
 interface Props {
-  initialData?: Partial<ExamData>;
-  onSave: (data: ExamData) => void;
+  initialData?: ExamData;
+  onSave: (data: object) => void;
   saving: boolean;
 }
 
 export function ExamForm({ initialData, onSave, saving }: Props) {
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
-  const [totalScore, setTotalScore] = useState(initialData?.totalScore ?? 100);
-  const [durationMinutes, setDurationMinutes] = useState(initialData?.durationMinutes ?? 60);
-  const [isPublished, setIsPublished] = useState(initialData?.isPublished ?? false);
+  const [totalScore, setTotalScore] = useState(
+    initialData?.total_score ?? initialData?.totalScore ?? 100
+  );
+  const [durationMinutes, setDurationMinutes] = useState(
+    initialData?.duration_minutes ?? initialData?.durationMinutes ?? 60
+  );
+  const [isPublished, setIsPublished] = useState(
+    initialData?.is_published ?? initialData?.isPublished ?? false
+  );
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSave({ title, description, totalScore, durationMinutes, isPublished });
+    // Send snake_case to match backend UpdateExamSchema
+    onSave({
+      title,
+      description,
+      total_score: totalScore,
+      duration_minutes: durationMinutes,
+      is_published: isPublished,
+    });
   }
 
   return (
@@ -73,13 +90,13 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
-            id="isPublished"
+            id="is_published"
             checked={isPublished}
             onChange={(e) => setIsPublished(e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-blue-600"
           />
-          <label htmlFor="isPublished" className="text-sm font-medium text-gray-700">
-            Publicado
+          <label htmlFor="is_published" className="text-sm font-medium text-gray-700">
+            Publicado (visible para estudiantes)
           </label>
         </div>
       </div>
@@ -90,7 +107,7 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
           disabled={saving}
           className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium px-5 py-2 rounded-lg"
         >
-          {saving ? 'Guardando...' : 'Guardar'}
+          {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </div>
     </form>

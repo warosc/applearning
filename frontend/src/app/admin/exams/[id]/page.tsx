@@ -26,21 +26,22 @@ interface FormField {
   options?: string[];
 }
 
+// Backend returns snake_case fields
 interface Exam {
   id: string;
   title: string;
   description: string;
-  totalScore: number;
-  durationMinutes: number;
-  isPublished: boolean;
+  total_score: number;
+  duration_minutes: number;
+  is_published: boolean;
 }
 
 interface QuestionOption {
   id?: string;
   label: string;
   value: string;
-  isCorrect: boolean;
-  orderIndex: number;
+  is_correct: boolean;
+  order_index: number;
 }
 
 interface Question {
@@ -48,8 +49,8 @@ interface Question {
   type: string;
   prompt: string;
   score: number;
-  orderIndex: number;
-  metadataJson?: Record<string, unknown> | null;
+  order_index: number;
+  metadata_json?: Record<string, unknown> | null;
   options: QuestionOption[];
 }
 
@@ -73,7 +74,7 @@ export default function EditExamPage() {
       .then(([e, q, tmpl]) => {
         setExam(e);
         setQuestions(q);
-        setFormFields(tmpl?.schemaJson?.fields ?? []);
+        setFormFields(tmpl?.schema_json?.fields ?? tmpl?.schemaJson?.fields ?? []);
       })
       .catch(() => setError('Error al cargar examen'))
       .finally(() => setLoading(false));
@@ -102,7 +103,7 @@ export default function EditExamPage() {
     setSavingForm(true);
     setError('');
     try {
-      await adminUpdateFormTemplate(token, id, { schemaJson: { fields } });
+      await adminUpdateFormTemplate(token, id, { schema_json: { fields } });
       setFormFields(fields);
     } catch (e) {
       setError((e as Error).message);
@@ -116,7 +117,7 @@ export default function EditExamPage() {
       const updated = await adminUpdateQuestion(token, data.id, data);
       setQuestions((prev) => prev.map((q) => (q.id === data.id ? updated : q)));
     } else {
-      const created = await adminCreateQuestion(token, { ...data, examId: id });
+      const created = await adminCreateQuestion(token, { ...data, exam_id: id });
       setQuestions((prev) => [...prev, created]);
     }
     setAddingQuestion(false);
@@ -176,7 +177,7 @@ export default function EditExamPage() {
 
         <div className="space-y-3">
           {questions
-            .sort((a, b) => a.orderIndex - b.orderIndex)
+            .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
             .map((q, idx) => (
               <div key={q.id}>
                 {editingQuestion?.id === q.id ? (
