@@ -12,9 +12,13 @@ interface Exam {
   id: string;
   title: string;
   description?: string;
-  totalScore: number;
-  durationMinutes: number;
-  isPublished: boolean;
+  // backend returns snake_case; support both
+  total_score?: number;
+  totalScore?: number;
+  duration_minutes?: number;
+  durationMinutes?: number;
+  is_published?: boolean;
+  isPublished?: boolean;
 }
 
 export function HomeClient() {
@@ -26,7 +30,7 @@ export function HomeClient() {
 
   useEffect(() => {
     fetchExams()
-      .then((data) => setExams(Array.isArray(data) ? data.filter((e: Exam) => e.isPublished) : []))
+      .then((data) => setExams(Array.isArray(data) ? data.filter((e: Exam) => e.is_published ?? e.isPublished) : []))
       .catch(() => setError('No se pudo conectar con el servidor'))
       .finally(() => setLoading(false));
   }, []);
@@ -164,11 +168,11 @@ export function HomeClient() {
                   <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-500">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
-                      {exam.durationMinutes} min
+                      {exam.duration_minutes ?? exam.durationMinutes} min
                     </span>
                     <span className="flex items-center gap-1">
                       <Star className="h-3.5 w-3.5" />
-                      {exam.totalScore} pts
+                      {exam.total_score ?? exam.totalScore} pts
                     </span>
                   </div>
                 </div>
