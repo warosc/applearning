@@ -76,6 +76,16 @@ class ResultQuestionBreakdown(BaseModel):
     is_marked_for_review: bool
 
 
+class MateriaBreakdown(BaseModel):
+    materia: str
+    score_obtained: float
+    total_score: float
+    percentage: float
+    correct: int
+    incorrect: int
+    omitted: int
+
+
 class AttemptResultSchema(BaseModel):
     attempt_id: str
     status: str
@@ -86,4 +96,5 @@ class AttemptResultSchema(BaseModel):
     incorrect: int
     omitted: int
     time_spent_seconds: Optional[int]
+    by_materia: list[MateriaBreakdown] = []
     questions: list[ResultQuestionBreakdown] = []

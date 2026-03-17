@@ -135,7 +135,7 @@ def calculate_total(exam, answers) -> tuple[float, float]:
 
 def get_result_summary(exam, answers, questions_map: dict) -> dict:
     """
-    Returns a comprehensive result summary dict.
+    Returns a comprehensive result summary dict including per-materia breakdown.
     questions_map: {question_id: Question}
     """
     total_score = exam.total_score or 0.0
@@ -144,17 +144,54 @@ def get_result_summary(exam, answers, questions_map: dict) -> dict:
     incorrect = 0
     omitted = 0
 
+    # materia -> {score_obtained, total_score, correct, incorrect, omitted}
+    by_materia: dict[str, dict] = {}
+
     for answer in answers:
         sc = answer.score_obtained or 0.0
         score_obtained += sc
+
+        q = questions_map.get(answer.question_id)
+        materia = (q.materia or "Sin materia") if q else "Sin materia"
+        q_max = (q.score or 0.0) if q else 0.0
+
+        if materia not in by_materia:
+            by_materia[materia] = {
+                "materia": materia,
+                "score_obtained": 0.0,
+                "total_score": 0.0,
+                "correct": 0,
+                "incorrect": 0,
+                "omitted": 0,
+            }
+        by_materia[materia]["score_obtained"] += sc
+        by_materia[materia]["total_score"] += q_max
+
         if answer.is_correct is None:
             omitted += 1
+            by_materia[materia]["omitted"] += 1
         elif answer.is_correct:
             correct += 1
+            by_materia[materia]["correct"] += 1
         else:
             incorrect += 1
+            by_materia[materia]["incorrect"] += 1
 
     percentage = (score_obtained / total_score * 100) if total_score > 0 else 0.0
+
+    # Compute per-materia percentage
+    materia_breakdown = []
+    for m in by_materia.values():
+        m_pct = (m["score_obtained"] / m["total_score"] * 100) if m["total_score"] > 0 else 0.0
+        materia_breakdown.append({
+            "materia": m["materia"],
+            "score_obtained": round(m["score_obtained"], 4),
+            "total_score": round(m["total_score"], 4),
+            "percentage": round(m_pct, 4),
+            "correct": m["correct"],
+            "incorrect": m["incorrect"],
+            "omitted": m["omitted"],
+        })
 
     return {
         "total_score": total_score,
@@ -163,4 +200,5 @@ def get_result_summary(exam, answers, questions_map: dict) -> dict:
         "correct": correct,
         "incorrect": incorrect,
         "omitted": omitted,
+        "by_materia": materia_breakdown,
     }

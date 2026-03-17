@@ -16,6 +16,16 @@ interface ResultItem {
   answerJson?: unknown;
 }
 
+interface MateriaItem {
+  materia: string;
+  score_obtained: number;
+  total_score: number;
+  percentage: number;
+  correct: number;
+  incorrect: number;
+  omitted: number;
+}
+
 interface ResultData {
   // snake_case fields (new API shape)
   correct?: number;
@@ -25,6 +35,7 @@ interface ResultData {
   total_score?: number;
   percentage?: number;
   time_spent_seconds?: number | null;
+  by_materia?: MateriaItem[];
   questions?: ResultItem[];
   // camelCase fields (old API shape)
   correctCount?: number;
@@ -72,6 +83,7 @@ export function ResultsView({ result, onRestart }: ResultsViewProps) {
   const totalScore = data.total_score ?? data.totalPossible ?? 100;
   const pct = data.percentage ?? 0;
   const timeSpent = data.time_spent_seconds ?? null;
+  const byMateria: MateriaItem[] = data.by_materia ?? [];
   const questionItems: ResultItem[] = data.questions ?? data.perQuestion ?? [];
 
   const passed = pct >= 60;
@@ -161,6 +173,42 @@ export function ResultsView({ result, onRestart }: ResultsViewProps) {
               : 'Te recomendamos estudiar más los temas del EXHCOBA antes de tu siguiente intento.'}
           </p>
         </div>
+
+        {/* Per-materia breakdown */}
+        {byMateria.length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-200 bg-slate-50">
+              <h2 className="font-semibold text-gray-800">Resultado por materia</h2>
+            </div>
+            <div className="divide-y divide-slate-100">
+              {byMateria.map((m) => {
+                const barColor = m.percentage >= 70 ? 'bg-green-500' : m.percentage >= 50 ? 'bg-amber-400' : 'bg-red-400';
+                return (
+                  <div key={m.materia} className="px-5 py-3.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm font-medium text-gray-800">{m.materia}</span>
+                      <span className="text-sm font-bold text-gray-700">
+                        {m.score_obtained.toFixed(1)}<span className="text-xs text-gray-400 font-normal">/{m.total_score.toFixed(1)} pts</span>
+                        <span className="ml-2 text-xs text-gray-500">{m.percentage.toFixed(0)}%</span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${barColor} transition-all duration-700`}
+                        style={{ width: `${Math.min(100, m.percentage)}%` }}
+                      />
+                    </div>
+                    <div className="flex gap-3 mt-1.5 text-xs text-gray-400">
+                      <span className="text-green-600">{m.correct} correctas</span>
+                      <span className="text-red-500">{m.incorrect} incorrectas</span>
+                      {m.omitted > 0 && <span>{m.omitted} omitidas</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Question breakdown */}
         {questionItems.length > 0 && (

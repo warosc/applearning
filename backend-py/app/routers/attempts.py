@@ -17,6 +17,7 @@ from app.schemas.attempt import (
     SaveAnswerRequest,
     MarkReviewRequest,
     AttemptResultSchema,
+    MateriaBreakdown,
     ResultQuestionBreakdown,
 )
 from app.schemas.event import LogEventRequest, ExamEventSchema
@@ -280,6 +281,7 @@ def get_result(attempt_id: str, db: Session = Depends(get_db)):
         incorrect=summary["incorrect"],
         omitted=summary["omitted"],
         time_spent_seconds=attempt.time_spent_seconds,
+        by_materia=[MateriaBreakdown(**m) for m in summary.get("by_materia", [])],
         questions=breakdown,
     )
 

@@ -16,6 +16,8 @@ class ExamAttempt(Base):
     started_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     submitted_at = Column(DateTime, nullable=True)
     time_spent_seconds = Column(Integer, nullable=True)
+    time_remaining = Column(Integer, nullable=True)
+    violations = Column(Integer, nullable=False, default=0)
     status = Column(String(50), nullable=False, default="in_progress")
     score_obtained = Column(Float, nullable=True)
     percentage = Column(Float, nullable=True)
