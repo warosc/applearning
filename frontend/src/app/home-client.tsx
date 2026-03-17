@@ -33,52 +33,95 @@ export function HomeClient() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-      {/* Top bar */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2 flex justify-end items-center gap-3 text-sm">
-        {token && user ? (
-          <>
-            <span className="text-gray-600">{user.name}</span>
-            <Link href="/historial" className="text-blue-600 hover:text-blue-800">
-              Mi historial
+
+      {/* ── NAVBAR ── */}
+      <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+
+          {/* Brand */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+              <BookOpen className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-bold text-gray-900 text-base">EXHCOBA</span>
+          </div>
+
+          {/* Right side */}
+          <div className="flex items-center gap-2">
+
+            {/* Ayuda — siempre visible, estilo botón */}
+            <Link
+              href="/ayuda"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all"
+            >
+              <HelpCircle className="h-4 w-4" />
+              Ayuda
             </Link>
-            <Link href="/perfil" className="text-sm text-gray-500 hover:text-gray-700">Mi perfil</Link>
-            {user.role === 'admin' && (
-              <Link href="/admin" className="flex items-center gap-1 text-blue-600 hover:text-blue-800">
-                <Settings className="h-4 w-4" />
-                Admin
+
+            {token && user ? (
+              <>
+                <span className="hidden sm:block text-sm text-gray-500">{user.name}</span>
+                <Link href="/historial" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                  Historial
+                </Link>
+                <Link href="/perfil" className="text-sm text-gray-500 hover:text-gray-700">Perfil</Link>
+                {user.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    <Settings className="h-4 w-4" />
+                    Admin
+                  </Link>
+                )}
+                <button
+                  onClick={() => logout()}
+                  className="text-sm text-red-500 hover:text-red-700"
+                >
+                  Salir
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
+              >
+                Iniciar sesión
               </Link>
             )}
-            <button onClick={() => logout()} className="text-red-500 hover:text-red-700">Salir</button>
-          </>
-        ) : (
-          <Link href="/login" className="text-blue-600 hover:text-blue-800">Iniciar sesión</Link>
-        )}
-        <Link href="/ayuda" className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors">
-          <HelpCircle className="h-4 w-4" />
-          Ayuda
-        </Link>
-      </div>
+          </div>
+        </div>
+      </nav>
 
-      {/* Hero */}
-      <div className="border-b bg-white px-4 py-16 text-center">
+      {/* ── HERO ── */}
+      <div className="bg-white border-b px-4 py-14 text-center">
         <div className="mx-auto max-w-2xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-sm text-blue-700">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-sm text-blue-700 font-medium">
             <Star className="h-3.5 w-3.5" />
             Plataforma de simulación de exámenes
           </div>
           <h1 className="mb-4 text-4xl font-bold tracking-tight text-slate-900">
-            Simulador de Examen
+            Simulador EXHCOBA
           </h1>
-          <p className="text-lg text-slate-600">
+          <p className="text-lg text-slate-500 max-w-xl mx-auto">
             Practica con exámenes reales: temporizador, múltiples tipos de preguntas,
             calculadora integrada y resultados detallados.
           </p>
+          <div className="mt-6">
+            <Link
+              href="/ayuda"
+              className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline font-medium"
+            >
+              <HelpCircle className="h-4 w-4" />
+              ¿Cómo funciona el simulador?
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Exámenes disponibles */}
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <h2 className="mb-6 text-xl font-semibold text-slate-800">Exámenes disponibles</h2>
+      {/* ── EXÁMENES ── */}
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <h2 className="mb-5 text-lg font-semibold text-slate-700">Exámenes disponibles</h2>
 
         {loading && (
           <div className="flex items-center justify-center py-16">
