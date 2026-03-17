@@ -24,7 +24,7 @@ import { Calculator } from '@/components/calculator';
 import { Timer } from '@/components/timer';
 import {
   Menu, X, Calculator as CalcIcon, Flag,
-  ChevronLeft, ChevronRight, Send, CheckSquare,
+  ChevronLeft, ChevronRight, Send, CheckSquare, HelpCircle,
 } from 'lucide-react';
 
 // ─── Question nav panel ───────────────────────────────────────────
@@ -174,47 +174,61 @@ export function ExamenClient() {
       try {
         if (attemptIdFromUrl) {
           const attempt = await fetchAttempt(attemptIdFromUrl);
-          setExamTitle(attempt.exam?.title ?? 'Simulador EXHCOBA');
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const a = attempt as any;
+          const examData = a.exam;
+          setExamTitle(examData?.title ?? 'Simulador EXHCOBA');
 
-          if (attempt.status === 'submitted' || attempt.status === 'expired') {
+          // Support both snake_case (backend) and camelCase field names
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const mapAnswer = (ans: any) => ({
+            questionId: ans.question_id ?? ans.questionId,
+            answerJson: ans.answer_json ?? ans.answerJson,
+            isMarkedForReview: ans.is_marked_for_review ?? ans.isMarkedForReview ?? false,
+          });
+
+          if (a.status === 'submitted' || a.status === 'expired') {
             const answersMap = Object.fromEntries(
-              (attempt.answers ?? []).map((a: { questionId: string; answerJson: unknown }) => [
-                a.questionId, a.answerJson,
+              (a.answers ?? []).map((ans: ReturnType<typeof mapAnswer>) => [
+                mapAnswer(ans as never).questionId, mapAnswer(ans as never).answerJson,
               ])
             );
             const res = await fetchResult(attemptIdFromUrl);
             setResult(res);
             setAttempt({
-              attemptId: attempt.id,
-              examId: attempt.examId,
-              startedAt: attempt.startedAt,
-              durationMinutes: attempt.exam?.durationMinutes ?? 60,
-              totalScore: attempt.exam?.totalScore ?? 100,
-              calculatorEnabled: attempt.exam?.calculatorEnabled ?? true,
-              questions: attempt.exam?.questions ?? [],
+              attemptId: a.id,
+              examId: a.exam_id ?? a.examId,
+              startedAt: a.started_at ?? a.startedAt,
+              durationMinutes: examData?.duration_minutes ?? examData?.durationMinutes ?? 60,
+              totalScore: examData?.total_score ?? examData?.totalScore ?? 100,
+              calculatorEnabled: examData?.calculator_enabled ?? examData?.calculatorEnabled ?? true,
+              questions: examData?.questions ?? [],
               answers: answersMap,
-              status: attempt.status,
+              status: a.status,
             });
           } else {
             const answersMap = Object.fromEntries(
-              (attempt.answers ?? []).map((a: { questionId: string; answerJson: unknown }) => [
-                a.questionId, a.answerJson,
-              ])
+              (a.answers ?? []).map((ans: ReturnType<typeof mapAnswer>) => {
+                const mapped = mapAnswer(ans as never);
+                return [mapped.questionId, mapped.answerJson];
+              })
             );
-            const markedIds = (attempt.answers ?? [])
-              .filter((a: { isMarkedForReview: boolean }) => a.isMarkedForReview)
-              .map((a: { questionId: string }) => a.questionId);
+            const markedIds = (a.answers ?? [])
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .filter((ans: any) => ans.is_marked_for_review ?? ans.isMarkedForReview)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .map((ans: any) => ans.question_id ?? ans.questionId);
             setAttempt({
-              attemptId: attempt.id,
-              examId: attempt.examId,
-              startedAt: attempt.startedAt,
-              durationMinutes: attempt.exam?.durationMinutes ?? 60,
-              totalScore: attempt.exam?.totalScore ?? 100,
-              calculatorEnabled: attempt.exam?.calculatorEnabled ?? true,
-              questions: attempt.exam?.questions ?? [],
+              attemptId: a.id,
+              examId: a.exam_id ?? a.examId,
+              startedAt: a.started_at ?? a.startedAt,
+              durationMinutes: examData?.duration_minutes ?? examData?.durationMinutes ?? 60,
+              totalScore: examData?.total_score ?? examData?.totalScore ?? 100,
+              calculatorEnabled: examData?.calculator_enabled ?? examData?.calculatorEnabled ?? true,
+              questions: examData?.questions ?? [],
               answers: answersMap,
               markedForReview: markedIds,
-              status: attempt.status,
+              status: a.status,
             });
             // Fetch form template if needed (non-critical)
             if (attempt.examId) {
@@ -225,22 +239,29 @@ export function ExamenClient() {
         } else {
           const exams = await fetchExams();
           const list = Array.isArray(exams) ? exams : [];
-          const exam = list.find((e: { isPublished: boolean }) => e.isPublished) ?? list[0];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const exam = list.find((e: any) => e.is_published ?? e.isPublished) ?? list[0];
           if (!exam) {
             setError('No hay simuladores disponibles.');
             return;
           }
           const started = await startAttempt(exam.id);
-          router.replace(`/examen?attempt=${started.id}`);
-          setExamTitle(started.exam?.title ?? exam.title ?? 'Simulador EXHCOBA');
+          // Backend returns { attempt: {...}, exam: {...} } — support both nested and flat shapes
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const startedAny = started as any;
+          const att = startedAny.attempt ?? startedAny;
+          const examData = startedAny.exam ?? exam;
+          const attemptId = att.id;
+          router.replace(`/examen?attempt=${attemptId}`);
+          setExamTitle(examData?.title ?? exam.title ?? 'Simulador EXHCOBA');
           setAttempt({
-            attemptId: started.id,
-            examId: started.examId,
-            startedAt: started.startedAt,
-            durationMinutes: started.exam?.durationMinutes ?? exam.durationMinutes ?? 60,
-            totalScore: started.exam?.totalScore ?? exam.totalScore ?? 100,
-            calculatorEnabled: started.exam?.calculatorEnabled ?? exam.calculatorEnabled ?? true,
-            questions: started.exam?.questions ?? [],
+            attemptId,
+            examId: att.exam_id ?? att.examId ?? exam.id,
+            startedAt: att.started_at ?? att.startedAt,
+            durationMinutes: examData?.duration_minutes ?? examData?.durationMinutes ?? exam.duration_minutes ?? exam.durationMinutes ?? 60,
+            totalScore: examData?.total_score ?? examData?.totalScore ?? exam.total_score ?? exam.totalScore ?? 100,
+            calculatorEnabled: examData?.calculator_enabled ?? examData?.calculatorEnabled ?? exam.calculator_enabled ?? exam.calculatorEnabled ?? true,
+            questions: examData?.questions ?? [],
             answers: {},
             markedForReview: [],
             status: 'in_progress',
@@ -330,11 +351,23 @@ export function ExamenClient() {
 
   if (error) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow p-8 text-center max-w-sm">
-        <p className="text-red-600 font-medium mb-4">{error}</p>
-        <button onClick={() => router.push('/')} className="text-blue-600 hover:underline text-sm">
-          Volver al inicio
-        </button>
+      <div className="bg-white rounded-xl shadow p-8 text-center max-w-sm space-y-4">
+        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+          <span className="text-red-600 text-xl font-bold">!</span>
+        </div>
+        <p className="text-gray-800 font-semibold">No se pudo cargar el examen</p>
+        <p className="text-red-600 text-sm">{error}</p>
+        <div className="flex flex-col gap-2 pt-2">
+          <button
+            onClick={() => { setError(''); setLoading(true); window.location.reload(); }}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+          >
+            Reintentar
+          </button>
+          <button onClick={() => router.push('/')} className="text-blue-600 hover:underline text-sm">
+            Volver al inicio
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -438,6 +471,17 @@ export function ExamenClient() {
               expired={status !== 'in_progress'}
             />
           )}
+
+          {/* Help button */}
+          <a
+            href="/ayuda"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Manual de ayuda"
+            className="flex items-center justify-center w-8 h-8 rounded hover:bg-slate-700 transition-colors text-slate-300 hover:text-white"
+          >
+            <HelpCircle className="h-4 w-4" />
+          </a>
 
           {/* Submit button */}
           <button
@@ -619,6 +663,15 @@ export function ExamenClient() {
                 <p>• Usa <strong>Marcar</strong> para revisar después</p>
                 <p>• Las respuestas se guardan automáticamente</p>
                 <p>• Revisa antes de finalizar</p>
+                <a
+                  href="/ayuda"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 mt-2 text-blue-600 hover:underline font-medium"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  Ver manual completo
+                </a>
               </div>
             </div>
           </aside>

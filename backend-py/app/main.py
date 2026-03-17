@@ -46,6 +46,8 @@ def public_config():
             "numeric",
             "algebraic",
             "drag_drop",
+            "fill_blank",
+            "multi_answer_weighted",
         ],
     }
 

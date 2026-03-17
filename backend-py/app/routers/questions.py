@@ -19,7 +19,7 @@ from app.schemas.question import (
     GenerateExamRequest,
 )
 from app.services.question_import import import_from_json, import_from_csv
-from app.services.exam_generator import generate_for_section
+from app.services.exam_generator import generate_exam_from_config
 
 router = APIRouter()
 
@@ -124,6 +124,7 @@ def create_question(
             label=opt.label,
             value=opt.value,
             is_correct=opt.is_correct,
+            weight=getattr(opt, 'weight', 0.0) or 0.0,
             order_index=opt.order_index if opt.order_index is not None else idx,
         )
         db.add(option)
@@ -162,6 +163,7 @@ def update_question(
                 label=opt["label"],
                 value=opt["value"],
                 is_correct=opt.get("is_correct", False),
+                weight=opt.get("weight", 0.0) or 0.0,
                 order_index=opt.get("order_index", idx),
             )
             db.add(option)
@@ -207,24 +209,20 @@ def generate_exam(
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
-    total_assigned = 0
-    results = []
-    for section_req in body.sections:
-        questions = generate_for_section(
-            section_id=section_req.section_id,
-            exam_id=body.exam_id,
-            materia=section_req.materia,
-            difficulty=section_req.difficulty,
-            count=section_req.count,
-            db=db,
-        )
-        results.append({
-            "section_id": section_req.section_id,
-            "assigned": len(questions),
-        })
-        total_assigned += len(questions)
-
-    return {"exam_id": body.exam_id, "total_assigned": total_assigned, "sections": results}
+    sections_config = [
+        {
+            "section_id": s.section_id,
+            "materia": s.materia,
+            "difficulty": s.difficulty,
+            "count": s.count,
+        }
+        for s in body.sections
+    ]
+    return generate_exam_from_config(
+        exam_id=body.exam_id,
+        sections_config=sections_config,
+        db=db,
+    )
 
 
 @router.post("/{question_id}/duplicate", response_model=QuestionSchema, status_code=201)
@@ -264,6 +262,7 @@ def duplicate_question(
             label=orig_opt.label,
             value=orig_opt.value,
             is_correct=orig_opt.is_correct,
+            weight=orig_opt.weight,
             order_index=orig_opt.order_index,
         )
         db.add(new_opt)

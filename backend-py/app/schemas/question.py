@@ -8,6 +8,7 @@ class QuestionOptionSchema(BaseModel):
     label: str
     value: str
     is_correct: bool
+    weight: float = 0.0
     order_index: int
 
     model_config = {"from_attributes": True}
@@ -18,6 +19,7 @@ class QuestionOptionPublicSchema(BaseModel):
     id: str
     label: str
     value: str
+    weight: float = 0.0
     order_index: int
 
     model_config = {"from_attributes": True}
@@ -27,6 +29,7 @@ class CreateQuestionOptionSchema(BaseModel):
     label: str
     value: str
     is_correct: bool = False
+    weight: float = 0.0
     order_index: int = 0
 
 

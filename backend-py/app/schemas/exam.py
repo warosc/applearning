@@ -81,6 +81,7 @@ class ExamSchema(ExamBase):
     created_at: datetime
     updated_at: datetime
     sections: list[ExamSectionSchema] = []
+    questions: list[QuestionPublicSchema] = []
 
     model_config = {"from_attributes": True}
 

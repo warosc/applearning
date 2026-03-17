@@ -45,6 +45,7 @@ class QuestionOption(Base):
     label = Column(String(2000), nullable=False)
     value = Column(String(2000), nullable=False)
     is_correct = Column(Boolean, nullable=False, default=False)
+    weight = Column(Float, nullable=False, default=0.0)
     order_index = Column(Integer, nullable=False, default=0)
 
     question = relationship("Question", back_populates="options")

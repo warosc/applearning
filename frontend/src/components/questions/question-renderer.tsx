@@ -4,6 +4,8 @@ import { QuestionSelect } from './question-select';
 import { QuestionNumeric } from './question-numeric';
 import { QuestionAlgebraic } from './question-algebraic';
 import { QuestionDragDrop } from './question-drag-drop';
+import { QuestionFillBlank } from './question-fill-blank';
+import { QuestionMultiWeighted } from './question-multi-weighted';
 
 interface Question {
   id: string;
@@ -12,7 +14,17 @@ interface Question {
   materia?: string | null;
   difficulty?: string;
   score?: number;
-  options?: Array<{ id?: string; value: string; label: string; isCorrect?: boolean; is_correct?: boolean; orderIndex?: number }>;
+  metadata_json?: Record<string, unknown> | null;
+  options?: Array<{
+    id?: string;
+    value: string;
+    label: string;
+    isCorrect?: boolean;
+    is_correct?: boolean;
+    weight?: number;
+    orderIndex?: number;
+    order_index?: number;
+  }>;
   [key: string]: unknown;
 }
 
@@ -33,7 +45,8 @@ export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendere
       value: o.value,
       label: o.label,
       isCorrect: o.isCorrect ?? o.is_correct,
-      orderIndex: o.orderIndex,
+      weight: o.weight ?? 0,
+      orderIndex: o.orderIndex ?? o.order_index ?? 0,
     })),
   };
 
@@ -72,6 +85,24 @@ export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendere
           options={normalizedQuestion.options}
           value={Array.isArray(answer) ? (answer as string[]) : []}
           onChange={(v) => onAnswer(v)}
+        />
+      );
+
+    case 'fill_blank':
+      return (
+        <QuestionFillBlank
+          question={normalizedQuestion}
+          answer={answer}
+          onAnswer={onAnswer}
+        />
+      );
+
+    case 'multi_answer_weighted':
+      return (
+        <QuestionMultiWeighted
+          question={normalizedQuestion}
+          answer={answer}
+          onAnswer={onAnswer}
         />
       );
 

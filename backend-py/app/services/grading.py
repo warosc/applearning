@@ -18,6 +18,11 @@ def normalize_algebraic(expr: str) -> str:
     return s
 
 
+def _has_weights(options) -> bool:
+    """Return True if any option has a non-zero weight defined."""
+    return any(getattr(opt, 'weight', 0.0) or 0.0 for opt in options)
+
+
 def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
     """
     Grade a single answer against question options.
@@ -69,6 +74,50 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
         submitted_order = [str(v).strip() for v in answer_json]
         is_correct = submitted_order == correct_order
         return is_correct, question.score if is_correct else 0.0
+
+    elif question.type == "fill_blank":
+        # Supports both multiple-choice (answer is a value string) and
+        # free-text (answer is a string that must match the correct option's value).
+        correct_option = next((opt for opt in options if opt.is_correct), None)
+        if correct_option is None:
+            return False, 0.0
+        if not answer_json:
+            return False, 0.0
+        is_correct = str(answer_json).strip().lower() == correct_option.value.strip().lower()
+        return is_correct, question.score if is_correct else 0.0
+
+    elif question.type == "multi_answer_weighted":
+        # Each option has a weight (0.0–1.0). Partial credit is awarded per correct selection.
+        # Selecting a wrong option deducts its weight. Total score clamped to [0, question.score].
+        if not isinstance(answer_json, list):
+            return False, 0.0
+        selected = {str(v).strip() for v in answer_json}
+
+        if _has_weights(options):
+            # Weight-based partial scoring
+            score_fraction = 0.0
+            for opt in options:
+                opt_weight = getattr(opt, 'weight', 0.0) or 0.0
+                if opt.is_correct and opt.value in selected:
+                    score_fraction += opt_weight
+                elif not opt.is_correct and opt.value in selected:
+                    score_fraction -= opt_weight
+            score_fraction = max(0.0, min(1.0, score_fraction))
+            score_obtained = round(question.score * score_fraction, 4)
+            is_correct = score_fraction >= 1.0
+            return is_correct if score_fraction > 0 else False, score_obtained
+        else:
+            # No weights: equal partial scoring — each correct option worth 1/total_correct
+            correct_values = {opt.value for opt in options if opt.is_correct}
+            if not correct_values:
+                return False, 0.0
+            per_option = question.score / len(correct_values)
+            correct_selected = selected & correct_values
+            wrong_selected = selected - correct_values
+            raw = len(correct_selected) * per_option - len(wrong_selected) * per_option
+            score_obtained = round(max(0.0, raw), 4)
+            is_correct = selected == correct_values
+            return is_correct, score_obtained
 
     # Unknown type — cannot grade
     return None, 0.0

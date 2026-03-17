@@ -52,6 +52,7 @@ def import_from_json(data: list[dict], db: Session) -> dict:
                     label=opt.get("label", ""),
                     value=opt.get("value", ""),
                     is_correct=bool(opt.get("is_correct", False)),
+                    weight=float(opt.get("weight", 0.0)),
                     order_index=opt.get("order_index", opt_idx),
                 )
                 db.add(option)
