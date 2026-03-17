@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth, exams, questions, attempts, analytics, admin, dashboard
+from app.routers import auth, exams, questions, attempts, analytics, admin, dashboard, practice
+import app.models.practice  # noqa: F401 — ensure models are registered with SQLAlchemy
 from app.config import settings
 
 app = FastAPI(
@@ -25,6 +26,7 @@ app.include_router(attempts.router, prefix="/api/attempts", tags=["attempts"])
 app.include_router(analytics.router, prefix="/api/admin", tags=["analytics"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(dashboard.router, prefix="/api/admin", tags=["dashboard"])
+app.include_router(practice.router, prefix="/api/practice", tags=["practice"])
 
 
 @app.get("/api/config/public", tags=["config"])

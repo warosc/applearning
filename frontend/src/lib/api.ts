@@ -369,6 +369,47 @@ export async function changeMyPassword(token: string, currentPassword: string, n
   return res.json();
 }
 
+// ─── Practice Mode ─────────────────────────────────────────────────────────
+
+export async function practiceStart(token: string, materia?: string) {
+  const res = await fetch(`${API_URL}/api/practice/start`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ materia: materia ?? null }),
+  });
+  if (!res.ok) throw new Error('No hay preguntas en el banco de práctica');
+  return res.json();
+}
+
+export async function practiceAnswer(
+  token: string,
+  questionId: string,
+  answerJson: unknown,
+  excludeIds: string[],
+  materia?: string,
+) {
+  const res = await fetch(`${API_URL}/api/practice/answer`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({
+      question_id: questionId,
+      answer_json: answerJson,
+      exclude_ids: excludeIds,
+      materia: materia ?? null,
+    }),
+  });
+  if (!res.ok) throw new Error('Error al procesar respuesta');
+  return res.json();
+}
+
+export async function fetchPracticeProgress(token: string) {
+  const res = await fetch(`${API_URL}/api/practice/progress`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Error al cargar progreso');
+  return res.json();
+}
+
 export async function reorderQuestions(token: string, questions: { question_id: string; order_index: number }[]) {
   const res = await fetch(`${API_URL}/api/questions/reorder`, {
     method: 'PUT',

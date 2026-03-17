@@ -20,3 +20,6 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     attempts = relationship("ExamAttempt", back_populates="user", lazy="select")
+    skills = relationship("UserSkill", back_populates="user", cascade="all, delete-orphan", lazy="select")
+    reviews = relationship("PracticeReview", back_populates="user", cascade="all, delete-orphan", lazy="select")
+    progress = relationship("UserProgress", back_populates="user", uselist=False, cascade="all, delete-orphan", lazy="select")

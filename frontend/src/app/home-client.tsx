@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { fetchExams } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
-import { Clock, BookOpen, Star, ChevronRight, AlertCircle, Settings, HelpCircle } from 'lucide-react';
+import { Clock, BookOpen, Star, ChevronRight, AlertCircle, Settings, HelpCircle, Dumbbell } from 'lucide-react';
 
 interface Exam {
   id: string;
@@ -52,6 +52,15 @@ export function HomeClient() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+
+            {/* Práctica — siempre visible */}
+            <Link
+              href="/practica"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-sm font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-400 transition-all"
+            >
+              <Dumbbell className="h-4 w-4" />
+              Práctica
+            </Link>
 
             {/* Ayuda — siempre visible, estilo botón */}
             <Link
