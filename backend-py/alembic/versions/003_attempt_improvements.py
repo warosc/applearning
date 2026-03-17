@@ -25,7 +25,7 @@ def upgrade() -> None:
     )
 
     # Indexes on questions for faster generator queries
-    op.create_index("ix_questions_materia", "questions", ["materia"])
+    # ix_questions_materia already exists from 001_initial — skip it
     op.create_index("ix_questions_tema", "questions", ["tema"])
     op.create_index("ix_questions_difficulty", "questions", ["difficulty"])
     op.create_index("ix_questions_exam_id_materia", "questions", ["exam_id", "materia"])
@@ -35,6 +35,5 @@ def downgrade() -> None:
     op.drop_index("ix_questions_exam_id_materia", table_name="questions")
     op.drop_index("ix_questions_difficulty", table_name="questions")
     op.drop_index("ix_questions_tema", table_name="questions")
-    op.drop_index("ix_questions_materia", table_name="questions")
     op.drop_column("exam_attempts", "violations")
     op.drop_column("exam_attempts", "time_remaining")
