@@ -1,82 +1,69 @@
-# Simulador de Examen
+# EXHCOBA Simulator Platform
 
-Aplicación web completa para simulación de exámenes, con panel de administración, autenticación JWT, sistema de calificación automática y soporte Docker.
-
-## Características
-
-- **Panel de preguntas** con navegación, marcado para revisión y guardado automático
-- **Temporizador** con expiración automática del intento
-- **Tipos de pregunta**: opción única, múltiple, numérica, algebraica, arrastre (drag & drop)
-- **Formulario configurable** por examen, editable desde el panel admin
-- **Calculadora** integrada, habilitación/deshabilitación por examen
-- **Calificación automática** con puntaje por pregunta
-- **Panel de administración** para gestión de exámenes, preguntas y formularios
-- **Autenticación JWT** con roles `admin` y `estudiante`
-- **Rate limiting** en login (5 intentos/minuto)
-- **Reverse proxy Nginx** incluido para producción
+Plataforma web completa para simulación del examen de admisión EXHCOBA: panel de administración, autenticación JWT, calificación automática con puntaje parcial, y soporte Docker.
 
 ## Stack técnico
 
 | Capa | Tecnología |
 |------|-----------|
-| Frontend | Next.js 14, TypeScript, Tailwind CSS, shadcn/ui, Zustand |
-| Backend | NestJS, Prisma ORM, Passport JWT |
+| Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS, Zustand, dnd-kit |
+| Backend | FastAPI (Python 3.12), SQLAlchemy 2, Alembic, Pydantic v2 |
 | Base de datos | PostgreSQL 16 |
-| Infraestructura | Docker, Docker Compose, Nginx |
+| Infraestructura | Docker, Docker Compose, Nginx (producción) |
 
-## Requisitos previos
+## Características
 
-- Docker 24+ y Docker Compose v2
-- (Desarrollo sin Docker) Node.js 20+, npm
+- **7 tipos de pregunta**: opción única, múltiple, numérica, algebraica, drag & drop, completar oración (`fill_blank`), multi-respuesta ponderada (`multi_answer_weighted`)
+- **Calificación parcial decimal** — `multi_answer_weighted` usa `weight` por opción
+- **Generador de exámenes** sin repetición de temas dentro de la misma materia
+- **Temporizador** con expiración automática y autoguardado de respuestas
+- **Panel admin** para crear/publicar exámenes, gestionar preguntas, importar desde JSON/CSV
+- **Autenticación JWT** con roles `admin` y `estudiante`
+- **Calculadora** integrada, habilitación por examen
+- **Página de ayuda** en `/ayuda` — manual del estudiante
 
 ---
 
-## Desarrollo local con Docker
+## Desarrollo local (Docker)
 
 ```bash
-# Desde la raíz del proyecto
 docker compose -f docker/docker-compose.yml up -d
-
-# Ver logs
 docker compose -f docker/docker-compose.yml logs -f
-
-# Frontend:  http://localhost:3000
-# API REST:  http://localhost:4000/api
-# Swagger:   http://localhost:4000/api
 ```
 
-El seed corre automáticamente al primer arranque y crea:
+| URL | Descripción |
+|-----|-------------|
+| http://localhost:3000 | Frontend (estudiante y admin) |
+| http://localhost:4000/api | API REST |
+| http://localhost:4000/docs | Swagger UI |
+
+### Usuarios por defecto (seed automático)
 
 | Usuario | Contraseña | Rol |
 |---------|-----------|-----|
 | `admin` | `admin123` | Administrador |
 | `demo` | `demo123` | Estudiante |
 
-El panel de administración está en: **http://localhost:3000/admin** (requiere login con `admin`).
+Panel de administración: **http://localhost:3000/admin**
 
 ---
 
 ## Desarrollo sin Docker
 
 ```bash
-# 1. Levantar solo PostgreSQL
+# 1. Levantar PostgreSQL
 docker run -d --name pg-dev \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=simulador_examen \
   -p 5432:5432 postgres:16-alpine
 
-# 2. Configurar entornos
-cp backend/.env.example backend/.env
+# 2. Backend
+cd backend-py
+pip install -r requirements.txt
+alembic upgrade head
+uvicorn app.main:app --reload --port 4000
 
-# 3. Migrar y seed
-cd backend
-npm install
-npx prisma migrate dev
-npx ts-node prisma/seed.ts
-npm run start:dev
-
-# 4. En otra terminal
+# 3. Frontend (otra terminal)
 cd frontend
 npm install
 npm run dev
@@ -84,96 +71,73 @@ npm run dev
 
 ---
 
-## Producción
-
-### 1. Preparar variables de entorno
-
-```bash
-cp .env.example .env
-# Editar .env: cambiar contraseñas, generar JWT_SECRET, configurar dominio
-```
-
-Variables mínimas requeridas en `.env`:
-
-```env
-POSTGRES_PASSWORD=<contraseña-segura>
-JWT_SECRET=<secreto-aleatorio>        # openssl rand -hex 32
-CORS_ORIGIN=https://tudominio.com
-```
-
-### 2. Construir y levantar
-
-```bash
-docker compose -f docker/docker-compose.prod.yml up -d --build
-```
-
-### Arquitectura de producción
-
-```
-Internet → Nginx (:80) → /api/*  → backend:4000 (NestJS)
-                       → /*      → frontend:3000 (Next.js)
-                                  ↕
-                              postgres:5432
-```
-
-Todos los servicios están en una red Docker interna (`app`). Solo Nginx expone el puerto 80.
-
----
-
-## API
-
-Con el backend corriendo, Swagger está disponible en `http://localhost:4000/api`.
-
-Endpoint de salud (sin autenticación): `GET /api/config/public`
-
-### Autenticación
-
-```bash
-# Login
-curl -X POST http://localhost:4000/api/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"admin123"}'
-
-# Responde con: { "access_token": "...", "user": { ... } }
-```
-
----
-
-## Estructura del proyecto
-
-```
-applearning/
-├── frontend/          # Next.js 14 (App Router)
-│   └── src/
-│       ├── app/       # Páginas: /, /examen, /login, /admin
-│       ├── components/
-│       ├── lib/api.ts # Cliente HTTP
-│       └── store/     # Zustand stores
-├── backend/           # NestJS API
-│   ├── prisma/        # Schema, migraciones, seed
-│   └── src/           # Módulos: auth, exams, questions, attempts, forms, config
-├── docker/
-│   ├── docker-compose.yml       # Desarrollo
-│   ├── docker-compose.prod.yml  # Producción (con Nginx)
-│   ├── Dockerfile.backend
-│   ├── Dockerfile.frontend
-│   └── nginx.conf
-├── .dockerignore
-├── .env.example       # Plantilla de variables de entorno
-└── README.md
-```
-
----
-
 ## Tests
 
 ```bash
-# Backend (Jest)
-cd backend && npm test
+# Backend
+cd backend-py
+pip install -r requirements-test.txt
+python -m pytest tests/ -q
 
-# Frontend (sin configurar aún)
-cd frontend && npm run test
+# Frontend
+cd frontend
+npx tsc --noEmit
+npx jest --passWithNoTests
 ```
+
+---
+
+## Producción
+
+```bash
+cp .env.example .env
+# Editar: POSTGRES_PASSWORD, JWT_SECRET, CORS_ORIGIN
+docker compose -f docker/docker-compose.prod.yml up -d --build
+```
+
+Variables mínimas requeridas:
+
+```env
+POSTGRES_PASSWORD=<contraseña-segura>
+JWT_SECRET=<openssl rand -hex 32>
+CORS_ORIGIN=https://tudominio.com
+```
+
+Arquitectura de producción:
+```
+Internet → Nginx (:80) → /api/* → backend:4000 (FastAPI)
+                       → /*     → frontend:3000 (Next.js)
+                                     ↕
+                                postgres:5432
+```
+
+El deploy a VPS se ejecuta automáticamente vía GitHub Actions al hacer push a `main`.
+
+---
+
+## Importar preguntas al banco
+
+```bash
+curl -X POST http://localhost:4000/api/questions/import \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "type": "single_choice",
+      "prompt": "¿Cuál es sinónimo de veloz?",
+      "materia": "Español",
+      "tema": "Sinónimos",
+      "difficulty": "facil",
+      "score": 1.0,
+      "options": [
+        {"label": "Rápido", "value": "rapido", "is_correct": true},
+        {"label": "Lento",  "value": "lento",  "is_correct": false}
+      ]
+    }
+  ]'
+```
+
+También se puede importar por CSV: `type,prompt,materia,tema,difficulty,score,option_a,option_b,option_c,option_d,correct_option`
 
 ---
 
