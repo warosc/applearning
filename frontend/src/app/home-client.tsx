@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { fetchExams } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
-import { Clock, BookOpen, Star, ChevronRight, AlertCircle, Settings } from 'lucide-react';
+import { Clock, BookOpen, Star, ChevronRight, AlertCircle, Settings, HelpCircle } from 'lucide-react';
 
 interface Exam {
   id: string;
@@ -53,6 +53,10 @@ export function HomeClient() {
         ) : (
           <Link href="/login" className="text-blue-600 hover:text-blue-800">Iniciar sesión</Link>
         )}
+        <Link href="/ayuda" className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors">
+          <HelpCircle className="h-4 w-4" />
+          Ayuda
+        </Link>
       </div>
 
       {/* Hero */}
