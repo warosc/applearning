@@ -36,7 +36,7 @@ interface QuestionData {
 
 interface Props {
   examId: string;
-  initialData?: Record<string, unknown>;
+  initialData?: object;
   onSave: (data: object) => void;
   onCancel: () => void;
 }
