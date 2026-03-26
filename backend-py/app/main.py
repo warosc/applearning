@@ -8,9 +8,9 @@ import app.models.practice  # noqa: F401 — ensure models are registered with S
 from app.config import settings
 
 app = FastAPI(
-    title="EXCOBA Simulator API",
+    title="Escobita Simulator API",
     version="2.0.0",
-    description="Backend API for the EXCOBA Simulator Platform",
+    description="Backend API for the Escobita Simulator Platform",
 )
 
 app.add_middleware(

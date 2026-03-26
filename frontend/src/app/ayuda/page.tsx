@@ -53,7 +53,7 @@ export default function AyudaPage() {
           </button>
           <div className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-blue-600" />
-            <h1 className="text-lg font-bold text-gray-900">Manual de Ayuda — EXHCOBA Simulator</h1>
+            <h1 className="text-lg font-bold text-gray-900">Manual de Ayuda — Escobita Simulator</h1>
           </div>
         </div>
       </header>
@@ -63,7 +63,7 @@ export default function AyudaPage() {
 
         {/* Intro */}
         <div className="bg-blue-600 text-white rounded-xl p-5">
-          <p className="text-base font-semibold mb-1">Bienvenido al Simulador EXHCOBA</p>
+          <p className="text-base font-semibold mb-1">Bienvenido al Simulador Escobita</p>
           <p className="text-sm text-blue-100">
             Este simulador te ayuda a practicar para el examen de admisión. Lee este manual para sacarle
             el máximo provecho.
@@ -208,7 +208,7 @@ export default function AyudaPage() {
         </div>
 
         <div className="text-center text-xs text-gray-400 pb-4">
-          EXHCOBA Simulator — Guía del estudiante
+          Escobita Simulator — Guía del estudiante
         </div>
       </main>
     </div>

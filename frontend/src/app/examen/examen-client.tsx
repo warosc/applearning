@@ -141,7 +141,7 @@ export function ExamenClient() {
     reset,
   } = useSimulatorStore();
 
-  const [examTitle, setExamTitle] = useState('Simulador EXHCOBA');
+  const [examTitle, setExamTitle] = useState('Simulador Escobita');
   const [result, setResult] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -177,7 +177,7 @@ export function ExamenClient() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const a = attempt as any;
           const examData = a.exam;
-          setExamTitle(examData?.title ?? 'Simulador EXHCOBA');
+          setExamTitle(examData?.title ?? 'Simulador Escobita');
 
           // Support both snake_case (backend) and camelCase field names
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -253,7 +253,7 @@ export function ExamenClient() {
           const examData = startedAny.exam ?? exam;
           const attemptId = att.id;
           router.replace(`/examen?attempt=${attemptId}`);
-          setExamTitle(examData?.title ?? exam.title ?? 'Simulador EXHCOBA');
+          setExamTitle(examData?.title ?? exam.title ?? 'Simulador Escobita');
           setAttempt({
             attemptId,
             examId: att.exam_id ?? att.examId ?? exam.id,
@@ -445,7 +445,7 @@ export function ExamenClient() {
           {/* Title */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className="hidden sm:flex flex-col leading-tight">
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">EXHCOBA</span>
+              <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">Escobita</span>
               <span className="text-sm font-semibold text-white truncate">{examTitle}</span>
             </div>
             <span className="sm:hidden text-sm font-semibold text-white truncate">{examTitle}</span>

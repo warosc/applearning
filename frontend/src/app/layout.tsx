@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Simulador de Examen',
+  title: 'Escobita',
   description: 'Plataforma profesional de simulación de exámenes',
 };
 

@@ -1,5 +1,5 @@
 """
-Seed script for EXCOBA Simulator Platform.
+Seed script for Escobita Simulator Platform.
 Idempotent: checks for existing data before inserting.
 """
 import sys
@@ -29,7 +29,7 @@ def seed_users(db):
             username="admin",
             password_hash=hash_password("admin123"),
             email="admin@excoba.edu",
-            name="Administrador EXCOBA",
+            name="Administrador Escobita",
             role="admin",
             created_at=datetime.utcnow(),
             updated_at=datetime.utcnow(),
@@ -62,15 +62,15 @@ def seed_users(db):
 
 def seed_exam(db):
     print("Seeding exam...")
-    existing = db.query(Exam).filter(Exam.title == "Examen EXCOBA Demo").first()
+    existing = db.query(Exam).filter(Exam.title == "Examen Escobita Demo").first()
     if existing:
         print("  Exam already exists, skipping exam seed")
         return existing
 
     exam = Exam(
         id=make_id(),
-        title="Examen EXCOBA Demo",
-        description="Examen de práctica para el EXCOBA — Evaluación de Competencias Básicas Académicas. Incluye secciones de Matemáticas, Español y Ciencias.",
+        title="Examen Escobita Demo",
+        description="Examen de práctica para el Escobita — Evaluación de Competencias Básicas Académicas. Incluye secciones de Matemáticas, Español y Ciencias.",
         total_score=100.0,
         duration_minutes=120,
         is_published=True,

@@ -170,7 +170,7 @@ export function ResultsView({ result, onRestart }: ResultsViewProps) {
               ? 'Tu desempeño es muy bueno. Sigue practicando para consolidar tus conocimientos.'
               : pct >= 50
               ? 'Buen intento. Repasa los temas donde cometiste errores y vuelve a intentarlo.'
-              : 'Te recomendamos estudiar más los temas del EXHCOBA antes de tu siguiente intento.'}
+              : 'Te recomendamos estudiar más los temas del Escobita antes de tu siguiente intento.'}
           </p>
         </div>
 

@@ -16,7 +16,7 @@ export function FullscreenPrompt({ examTitle, onEnterFullscreen, onSkip }: Fulls
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white text-center">
           <Shield className="h-10 w-10 mx-auto mb-2 text-blue-200" />
           <h2 className="text-lg font-bold">{examTitle}</h2>
-          <p className="text-sm text-blue-200 mt-1">Simulador EXHCOBA</p>
+          <p className="text-sm text-blue-200 mt-1">Simulador Escobita</p>
         </div>
 
         <div className="px-6 py-5 space-y-4">

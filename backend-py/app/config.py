@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_hours: int = 8
     cors_origin: str = os.getenv("CORS_ORIGIN", "http://localhost:3000")
-    app_name: str = "EXCOBA Simulator Platform"
+    app_name: str = "Escobita Simulator Platform"
     app_version: str = "2.0.0"
     debug: bool = os.getenv("DEBUG", "false").lower() == "true"
 

@@ -109,7 +109,7 @@ export default function ConfigPage() {
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-gray-500">Plataforma</p>
-              <p className="font-medium text-gray-800">EXHCOBA Simulator v1.0</p>
+              <p className="font-medium text-gray-800">Escobita Simulator v1.0</p>
             </div>
             <div>
               <p className="text-gray-500">Backend</p>

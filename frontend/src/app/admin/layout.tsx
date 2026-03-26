@@ -57,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-[220px] shrink-0 bg-white border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 z-10">
         {/* Brand */}
         <div className="h-14 flex items-center px-5 border-b border-gray-100">
-          <span className="font-bold text-blue-600 text-base tracking-tight">EXHCOBA Admin</span>
+          <span className="font-bold text-blue-600 text-base tracking-tight">Escobita Admin</span>
         </div>
 
         {/* Nav links */}
