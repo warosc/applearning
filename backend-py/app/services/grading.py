@@ -58,7 +58,9 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
             if isinstance(raw, dict):
                 raw = raw.get("value", raw)
             answer_val = float(raw)
-            meta = question.metadata_json or {}
+            meta = question.metadata_json
+            if not isinstance(meta, dict):
+                meta = {}
             comparison = meta.get("comparison", "range")
             tolerance = float(meta.get("tolerance", 0.001))
             if comparison == "greater_than":
@@ -134,7 +136,9 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
     elif question.type == "inline_choice":
         # Blanks defined in metadata_json.inline_blanks
         # Answer is a dict { "0": "selected_text", "1": "selected_text", ... }
-        meta = question.metadata_json or {}
+        meta = question.metadata_json
+        if not isinstance(meta, dict):
+            meta = {}
         blanks = meta.get("inline_blanks", [])
         if not blanks:
             return False, 0.0
