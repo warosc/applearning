@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useAuthStore } from '@/store/auth-store';
 
 const QUESTION_TYPES = [
   { value: 'single_choice', label: 'Opción única' },
@@ -73,13 +74,18 @@ function normalizeOption(o: Record<string, unknown>, i: number): Option {
 function useImageUpload(onUploaded: (url: string) => void) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const token = useAuthStore((s) => s.token);
 
   async function handleFile(file: File) {
     setUploading(true);
     try {
       const form = new FormData();
       form.append('file', file);
-      const res = await fetch('/api/upload/image', { method: 'POST', body: form });
+      const res = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: form,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: 'Error al subir' }));
         alert(err.detail ?? 'Error al subir imagen');
