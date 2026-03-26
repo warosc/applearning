@@ -6,11 +6,13 @@ import { QuestionAlgebraic } from './question-algebraic';
 import { QuestionDragDrop } from './question-drag-drop';
 import { QuestionFillBlank } from './question-fill-blank';
 import { QuestionMultiWeighted } from './question-multi-weighted';
+import { QuestionInlineChoice } from './question-inline-choice';
 
 interface Question {
   id: string;
   type: string;
   prompt: string;
+  image_url?: string | null;
   materia?: string | null;
   difficulty?: string;
   score?: number;
@@ -24,6 +26,7 @@ interface Question {
     weight?: number;
     orderIndex?: number;
     order_index?: number;
+    image_url?: string | null;
   }>;
   [key: string]: unknown;
 }
@@ -47,70 +50,101 @@ export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendere
       isCorrect: o.isCorrect ?? o.is_correct,
       weight: o.weight ?? 0,
       orderIndex: o.orderIndex ?? o.order_index ?? 0,
+      image_url: o.image_url ?? null,
     })),
   };
 
-  switch (question.type) {
-    case 'single_choice':
-    case 'multiple_choice':
-      return (
-        <QuestionSelect
-          question={normalizedQuestion}
-          answer={answer}
-          onAnswer={onAnswer}
-        />
-      );
+  const questionImage = question.image_url ?? (question as Record<string, unknown>).imageUrl as string | null | undefined;
 
-    case 'numeric':
-      return (
-        <QuestionNumeric
-          question={normalizedQuestion}
-          answer={answer}
-          onAnswer={onAnswer}
-        />
-      );
+  return (
+    <div className="space-y-4">
+      {/* Question image */}
+      {questionImage && (
+        <div className="rounded-xl overflow-hidden border border-gray-200">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={questionImage}
+            alt="Imagen de la pregunta"
+            className="w-full max-h-80 object-contain bg-gray-50"
+          />
+        </div>
+      )}
 
-    case 'algebraic':
-      return (
-        <QuestionAlgebraic
-          question={normalizedQuestion}
-          answer={answer}
-          onAnswer={onAnswer}
-        />
-      );
+      {/* Type-specific renderer */}
+      {(() => {
+        switch (question.type) {
+          case 'single_choice':
+          case 'multiple_choice':
+            return (
+              <QuestionSelect
+                question={normalizedQuestion}
+                answer={answer}
+                onAnswer={onAnswer}
+              />
+            );
 
-    case 'drag_drop':
-      return (
-        <QuestionDragDrop
-          options={normalizedQuestion.options}
-          value={Array.isArray(answer) ? (answer as string[]) : []}
-          onChange={(v) => onAnswer(v)}
-        />
-      );
+          case 'numeric':
+            return (
+              <QuestionNumeric
+                question={normalizedQuestion}
+                answer={answer}
+                onAnswer={onAnswer}
+              />
+            );
 
-    case 'fill_blank':
-      return (
-        <QuestionFillBlank
-          question={normalizedQuestion}
-          answer={answer}
-          onAnswer={onAnswer}
-        />
-      );
+          case 'algebraic':
+            return (
+              <QuestionAlgebraic
+                question={normalizedQuestion}
+                answer={answer}
+                onAnswer={onAnswer}
+              />
+            );
 
-    case 'multi_answer_weighted':
-      return (
-        <QuestionMultiWeighted
-          question={normalizedQuestion}
-          answer={answer}
-          onAnswer={onAnswer}
-        />
-      );
+          case 'drag_drop':
+            return (
+              <QuestionDragDrop
+                options={normalizedQuestion.options}
+                value={Array.isArray(answer) ? (answer as string[]) : []}
+                onChange={(v) => onAnswer(v)}
+              />
+            );
 
-    default:
-      return (
-        <p className="text-gray-400 text-sm italic">
-          Tipo de pregunta no soportado: {question.type}
-        </p>
-      );
-  }
+          case 'fill_blank':
+            return (
+              <QuestionFillBlank
+                question={normalizedQuestion}
+                answer={answer}
+                onAnswer={onAnswer}
+              />
+            );
+
+          case 'multi_answer_weighted':
+            return (
+              <QuestionMultiWeighted
+                question={normalizedQuestion}
+                answer={answer}
+                onAnswer={onAnswer}
+              />
+            );
+
+          case 'inline_choice':
+            return (
+              <QuestionInlineChoice
+                question={normalizedQuestion}
+                answer={answer}
+                onAnswer={onAnswer}
+              />
+            );
+
+          default:
+            return (
+              <p className="text-gray-400 text-sm italic">
+                Tipo de pregunta no soportado: {question.type}
+              </p>
+            );
+        }
+      })()}
+    </div>
+  );
 }

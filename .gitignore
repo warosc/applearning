@@ -46,3 +46,4 @@ out/
 
 # TypeScript
 *.tsbuildinfo
+.opencode

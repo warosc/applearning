@@ -47,5 +47,6 @@ class QuestionOption(Base):
     is_correct = Column(Boolean, nullable=False, default=False)
     weight = Column(Float, nullable=False, default=0.0)
     order_index = Column(Integer, nullable=False, default=0)
+    image_url = Column(String(1000), nullable=True)
 
     question = relationship("Question", back_populates="options")

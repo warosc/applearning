@@ -6,6 +6,7 @@ interface Option {
   label: string;
   is_correct?: boolean;
   isCorrect?: boolean;
+  image_url?: string | null;
 }
 
 interface QuestionSelectProps {
@@ -66,12 +67,24 @@ export function QuestionSelect({ question, answer, onAnswer }: QuestionSelectPro
             }`}>
               {letter}
             </span>
-            {/* Label */}
-            <span className={`flex-1 text-sm leading-relaxed pt-0.5 ${
-              selected ? 'text-blue-900 font-medium' : 'text-gray-700'
-            }`}>
-              {opt.label}
+
+            {/* Label + optional image */}
+            <span className="flex-1 space-y-2">
+              {opt.image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={opt.image_url}
+                  alt={opt.label}
+                  className="max-h-40 rounded-lg object-contain border border-gray-100"
+                />
+              )}
+              <span className={`block text-sm leading-relaxed pt-0.5 ${
+                selected ? 'text-blue-900 font-medium' : 'text-gray-700'
+              }`}>
+                {opt.label}
+              </span>
             </span>
+
             {/* Check indicator */}
             {selected && (
               <span className="flex-shrink-0 mt-0.5">

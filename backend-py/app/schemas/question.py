@@ -10,6 +10,7 @@ class QuestionOptionSchema(BaseModel):
     is_correct: bool
     weight: float = 0.0
     order_index: int
+    image_url: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -21,6 +22,7 @@ class QuestionOptionPublicSchema(BaseModel):
     value: str
     weight: float = 0.0
     order_index: int
+    image_url: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
@@ -31,6 +33,7 @@ class CreateQuestionOptionSchema(BaseModel):
     is_correct: bool = False
     weight: float = 0.0
     order_index: int = 0
+    image_url: Optional[str] = None
 
 
 class QuestionBase(BaseModel):

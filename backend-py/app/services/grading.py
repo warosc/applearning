@@ -53,8 +53,20 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
             return False, 0.0
         try:
             correct_val = float(correct_option.value)
-            answer_val = float(answer_json)
-            is_correct = abs(answer_val - correct_val) <= 0.001
+            # Accept plain number or {"value": ..., "unit": ...} from unit-selector UI
+            raw = answer_json
+            if isinstance(raw, dict):
+                raw = raw.get("value", raw)
+            answer_val = float(raw)
+            meta = question.metadata_json or {}
+            comparison = meta.get("comparison", "range")
+            tolerance = float(meta.get("tolerance", 0.001))
+            if comparison == "greater_than":
+                is_correct = answer_val > correct_val
+            elif comparison == "less_than":
+                is_correct = answer_val < correct_val
+            else:  # "range" or "exact"
+                is_correct = abs(answer_val - correct_val) <= tolerance
             return is_correct, question.score if is_correct else 0.0
         except (TypeError, ValueError):
             return False, 0.0
@@ -118,6 +130,27 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
             score_obtained = round(max(0.0, raw), 4)
             is_correct = selected == correct_values
             return is_correct, score_obtained
+
+    elif question.type == "inline_choice":
+        # Blanks defined in metadata_json.inline_blanks
+        # Answer is a dict { "0": "selected_text", "1": "selected_text", ... }
+        meta = question.metadata_json or {}
+        blanks = meta.get("inline_blanks", [])
+        if not blanks:
+            return False, 0.0
+        if not isinstance(answer_json, dict):
+            return False, 0.0
+        correct_count = 0
+        for blank in blanks:
+            bid = str(blank.get("id", ""))
+            correct = str(blank.get("correct", "")).strip()
+            given = str(answer_json.get(bid, "")).strip()
+            if given.lower() == correct.lower():
+                correct_count += 1
+        fraction = correct_count / len(blanks)
+        score_obtained = round(question.score * fraction, 4)
+        is_correct = fraction >= 1.0
+        return (is_correct if fraction > 0 else False), score_obtained
 
     # Unknown type — cannot grade
     return None, 0.0
