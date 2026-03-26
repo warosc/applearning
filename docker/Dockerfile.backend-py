@@ -25,6 +25,9 @@ COPY --from=builder /install /usr/local
 # Copy application source
 COPY --chown=appuser:appgroup backend-py/ .
 
+# Pre-create uploads dir so appuser can write at runtime
+RUN mkdir -p /app/static/images && chown -R appuser:appgroup /app/static
+
 USER appuser
 ENV PYTHONUNBUFFERED=1
 EXPOSE 4000
