@@ -154,6 +154,25 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
             is_correct = selected == correct_values
             return is_correct, score_obtained
 
+    elif question.type == "drag_categorize":
+        # metadata_json: { categories: [{id, label}], correct_map: {item_value: cat_id} }
+        # answer: { item_value: cat_id, ... }
+        meta = question.metadata_json
+        if not isinstance(meta, dict):
+            meta = {}
+        correct_map = meta.get("correct_map", {})
+        if not correct_map or not isinstance(answer_json, dict):
+            return False, 0.0
+        total = len(correct_map)
+        correct_count = sum(
+            1 for item_val, cat_id in correct_map.items()
+            if str(answer_json.get(item_val, "")).strip() == str(cat_id).strip()
+        )
+        fraction = correct_count / total if total > 0 else 0.0
+        score_obtained = round(question.score * fraction, 4)
+        is_correct = fraction >= 1.0
+        return (is_correct if fraction > 0 else False), score_obtained
+
     elif question.type == "image_hotspot":
         # Hotspots defined in metadata_json.hotspots: [{id, x, y, options, correct}]
         # Answer: {"0": "selected", "1": "selected", ...}

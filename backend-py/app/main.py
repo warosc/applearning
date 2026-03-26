@@ -60,6 +60,7 @@ def public_config():
             "multi_answer_weighted",
             "inline_choice",
             "image_hotspot",
+            "drag_categorize",
         ],
     }
 

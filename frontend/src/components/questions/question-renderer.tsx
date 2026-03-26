@@ -8,6 +8,7 @@ import { QuestionFillBlank } from './question-fill-blank';
 import { QuestionMultiWeighted } from './question-multi-weighted';
 import { QuestionInlineChoice } from './question-inline-choice';
 import { QuestionImageHotspot } from './question-image-hotspot';
+import { QuestionDragCategorize } from './question-drag-categorize';
 
 interface Question {
   id: string;
@@ -141,6 +142,15 @@ export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendere
           case 'image_hotspot':
             return (
               <QuestionImageHotspot
+                question={normalizedQuestion}
+                answer={answer}
+                onAnswer={onAnswer}
+              />
+            );
+
+          case 'drag_categorize':
+            return (
+              <QuestionDragCategorize
                 question={normalizedQuestion}
                 answer={answer}
                 onAnswer={onAnswer}

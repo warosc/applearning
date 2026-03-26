@@ -13,6 +13,7 @@ const QUESTION_TYPES = [
   { value: 'algebraic', label: 'Algebraico' },
   { value: 'drag_drop', label: 'Ordenar (drag & drop)' },
   { value: 'image_hotspot', label: 'Identificar en imagen (hotspot)' },
+  { value: 'drag_categorize', label: 'Clasificar (arrastrar a categorías)' },
 ];
 
 const NUMERIC_COMPARISONS = [
@@ -350,12 +351,13 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
     return (initMeta?.inline_blanks as InlineBlank[]) ?? [];
   });
 
-  const hasOptions = ['single_choice', 'multiple_choice', 'drag_drop', 'fill_blank', 'multi_answer_weighted'].includes(type);
+  const hasOptions = ['single_choice', 'multiple_choice', 'drag_drop', 'fill_blank', 'multi_answer_weighted'].includes(type); // drag_categorize has its own editor
   const hasWeight = type === 'multi_answer_weighted';
   const hasExpected = ['numeric', 'algebraic'].includes(type);
   const isInlineChoice = type === 'inline_choice';
   const isNumeric = type === 'numeric';
   const isHotspot = type === 'image_hotspot';
+  const isCategorize = type === 'drag_categorize';
 
   // ── Options helpers ──
   function addOption() {
@@ -435,6 +437,35 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
     ));
   }
 
+  // ── Categorize state ──
+  interface CatDef { id: string; label: string; }
+  const [categories, setCategories] = useState<CatDef[]>(() => {
+    const raw = initMeta?.categories as CatDef[] | undefined;
+    return raw ?? [{ id: 'cat_0', label: '' }, { id: 'cat_1', label: '' }];
+  });
+  // correct_map: {option_value: cat_id} — derived from option.is_correct repurposed
+  // We store it in metadata directly; editor uses a per-option select
+  const [correctMap, setCorrectMap] = useState<Record<string, string>>(() => {
+    return (initMeta?.correct_map as Record<string, string>) ?? {};
+  });
+
+  function addCategory() {
+    const newId = `cat_${categories.length}`;
+    setCategories((prev) => [...prev, { id: newId, label: '' }]);
+  }
+  function updateCategory(idx: number, label: string) {
+    setCategories((prev) => prev.map((c, i) => i === idx ? { ...c, label } : c));
+  }
+  function removeCategory(idx: number) {
+    const catId = categories[idx].id;
+    setCategories((prev) => prev.filter((_, i) => i !== idx));
+    setCorrectMap((prev) => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach((k) => { if (updated[k] === catId) delete updated[k]; });
+      return updated;
+    });
+  }
+
   // ── Score range helpers ──
   function addScoreRange() {
     setScoreRanges((prev) => [...prev, { min: '', max: '', fraction: '1' }]);
@@ -474,6 +505,9 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
     }
     if (isHotspot) {
       return { hotspots };
+    }
+    if (isCategorize) {
+      return { categories, correct_map: correctMap };
     }
     return null;
   }
@@ -939,6 +973,82 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
           onUpdateOption={updateHotspotOption}
           onRemoveOption={removeHotspotOption}
         />
+      )}
+
+      {/* ── Drag-categorize editor ── */}
+      {isCategorize && (
+        <div className="space-y-4">
+          {/* Category definitions */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Categorías</p>
+              <button type="button" onClick={addCategory}
+                className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 bg-white">
+                + Agregar categoría
+              </button>
+            </div>
+            {categories.map((cat, cIdx) => (
+              <div key={cat.id} className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 w-14 shrink-0">{cat.id}</span>
+                <input
+                  type="text"
+                  value={cat.label}
+                  onChange={(e) => updateCategory(cIdx, e.target.value)}
+                  placeholder={`Nombre categoría ${cIdx + 1}`}
+                  required
+                  className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                {categories.length > 2 && (
+                  <button type="button" onClick={() => removeCategory(cIdx)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Items and their correct category */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                Elementos y su categoría correcta
+              </p>
+              <button type="button" onClick={addOption}
+                className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 bg-white">
+                + Agregar elemento
+              </button>
+            </div>
+            <p className="text-xs text-gray-400">Escribe el nombre del elemento y asigna la categoría correcta.</p>
+
+            {options.map((opt, idx) => (
+              <div key={idx} className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-2">
+                <span className="text-gray-300 text-xs">⠿</span>
+                <input
+                  type="text"
+                  value={opt.label}
+                  onChange={(e) =>
+                    updateOption(idx, {
+                      label: e.target.value,
+                      value: e.target.value.toLowerCase().replace(/\s+/g, '_'),
+                    })
+                  }
+                  placeholder="Elemento (ej. VIH)"
+                  required
+                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+                <select
+                  value={correctMap[opt.value] ?? ''}
+                  onChange={(e) => setCorrectMap((prev) => ({ ...prev, [opt.value]: e.target.value }))}
+                  className="border border-gray-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">— categoría —</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.label || cat.id}</option>
+                  ))}
+                </select>
+                <button type="button" onClick={() => removeOption(idx)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* ── Actions ── */}
