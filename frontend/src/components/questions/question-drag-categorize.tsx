@@ -145,7 +145,7 @@ export function QuestionDragCategorize({ question, answer, onAnswer }: QuestionD
       </div>
 
       {/* ── Category columns ── */}
-      <div className={`grid gap-3 ${categories.length <= 3 ? `grid-cols-${categories.length}` : 'grid-cols-2'}`}>
+      <div className={`grid gap-3 ${categories.length === 1 ? 'grid-cols-1' : categories.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
         {categories.map((cat) => {
           const catItems = inCategory(cat.id);
           const isOver = draggingOver === cat.id;

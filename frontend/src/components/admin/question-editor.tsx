@@ -45,6 +45,11 @@ interface ScoreRange {
   fraction: string; // 0.0–1.0 as string for input binding
 }
 
+interface CatDef {
+  id: string;
+  label: string;
+}
+
 interface QuestionData {
   id?: string;
   type: string;
@@ -179,7 +184,6 @@ interface HotspotEditorProps {
 function HotspotEditor({
   imageUrl, hotspots, onImageClick, onRemove, onUpdate, onAddOption, onUpdateOption, onRemoveOption
 }: HotspotEditorProps) {
-  const imgRef = useRef<HTMLImageElement>(null);
   const [placing, setPlacing] = useState(false);
 
   function handleImageClick(e: React.MouseEvent<HTMLDivElement>) {
@@ -224,7 +228,6 @@ function HotspotEditor({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            ref={imgRef}
             src={imageUrl}
             alt="Imagen"
             className="w-full object-contain max-h-[400px] bg-gray-900"
@@ -333,7 +336,6 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
   const [numericComparison, setNumericComparison] = useState((initMeta?.comparison as string) ?? 'range');
   const [numericTolerance, setNumericTolerance] = useState((initMeta?.tolerance as number) ?? 0.001);
   const [numericUnit, setNumericUnit] = useState((initMeta?.unit as string) ?? '');
-  const [numericUnits, setNumericUnits] = useState<string[]>((initMeta?.units as string[]) ?? []);
   const [unitsInput, setUnitsInput] = useState(((initMeta?.units as string[]) ?? []).join(', '));
   const [scoreRanges, setScoreRanges] = useState<ScoreRange[]>(() => {
     const raw = initMeta?.score_ranges as { min: number; max: number; fraction: number }[] | undefined;
@@ -438,7 +440,6 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
   }
 
   // ── Categorize state ──
-  interface CatDef { id: string; label: string; }
   const [categories, setCategories] = useState<CatDef[]>(() => {
     const raw = initMeta?.categories as CatDef[] | undefined;
     return raw ?? [{ id: 'cat_0', label: '' }, { id: 'cat_1', label: '' }];
@@ -693,7 +694,6 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 value={unitsInput}
                 onChange={(e) => {
                   setUnitsInput(e.target.value);
-                  setNumericUnits(e.target.value.split(',').map((s) => s.trim()).filter(Boolean));
                 }}
                 placeholder="ej. km, millas, m"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
