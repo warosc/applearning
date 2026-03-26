@@ -61,6 +61,27 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
             meta = question.metadata_json
             if not isinstance(meta, dict):
                 meta = {}
+
+            # ── Score ranges (partial credit by range) ──────────────────────
+            # score_ranges: [{min, max, fraction}] — checked in order, first match wins.
+            # fraction 1.0 = full score, 0.5 = half, etc.
+            score_ranges = meta.get("score_ranges", [])
+            if score_ranges and isinstance(score_ranges, list):
+                for sr in score_ranges:
+                    try:
+                        lo = float(sr.get("min", float("-inf")))
+                        hi = float(sr.get("max", float("inf")))
+                        fraction = float(sr.get("fraction", 0.0))
+                        if lo <= answer_val <= hi:
+                            score_obtained = round(question.score * fraction, 4)
+                            is_correct = fraction >= 1.0
+                            return is_correct, score_obtained
+                    except (TypeError, ValueError):
+                        continue
+                # No range matched → 0
+                return False, 0.0
+
+            # ── Simple comparison (fallback when no score_ranges) ────────────
             comparison = meta.get("comparison", "range")
             tolerance = float(meta.get("tolerance", 0.001))
             if comparison == "greater_than":

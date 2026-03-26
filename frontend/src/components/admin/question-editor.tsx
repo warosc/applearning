@@ -37,6 +37,12 @@ interface InlineBlank {
   correct: string;
 }
 
+interface ScoreRange {
+  min: string;
+  max: string;
+  fraction: string; // 0.0–1.0 as string for input binding
+}
+
 interface QuestionData {
   id?: string;
   type: string;
@@ -174,6 +180,10 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
   const [numericUnit, setNumericUnit] = useState((initMeta?.unit as string) ?? '');
   const [numericUnits, setNumericUnits] = useState<string[]>((initMeta?.units as string[]) ?? []);
   const [unitsInput, setUnitsInput] = useState(((initMeta?.units as string[]) ?? []).join(', '));
+  const [scoreRanges, setScoreRanges] = useState<ScoreRange[]>(() => {
+    const raw = initMeta?.score_ranges as { min: number; max: number; fraction: number }[] | undefined;
+    return (raw ?? []).map((r) => ({ min: String(r.min), max: String(r.max), fraction: String(r.fraction) }));
+  });
 
   // ── Options (for choice/fill/weighted/drag types) ──
   const [options, setOptions] = useState<Option[]>(() => {
@@ -241,16 +251,35 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
     );
   }
 
+  // ── Score range helpers ──
+  function addScoreRange() {
+    setScoreRanges((prev) => [...prev, { min: '', max: '', fraction: '1' }]);
+  }
+  function removeScoreRange(idx: number) {
+    setScoreRanges((prev) => prev.filter((_, i) => i !== idx));
+  }
+  function updateScoreRange(idx: number, patch: Partial<ScoreRange>) {
+    setScoreRanges((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+  }
+
   // ── Submit ──
   function buildMetadata(): Record<string, unknown> | null {
     if (isNumeric) {
       const units = unitsInput.split(',').map((s) => s.trim()).filter(Boolean);
+      const parsedRanges = scoreRanges
+        .filter((r) => r.min !== '' || r.max !== '')
+        .map((r) => ({
+          min: r.min !== '' ? parseFloat(r.min) : -Infinity,
+          max: r.max !== '' ? parseFloat(r.max) : Infinity,
+          fraction: parseFloat(r.fraction) || 0,
+        }));
       return {
         expected: expectedAnswer,
         comparison: numericComparison,
         tolerance: numericTolerance,
         ...(numericUnit ? { unit: numericUnit } : {}),
         ...(units.length ? { units } : {}),
+        ...(parsedRanges.length ? { score_ranges: parsedRanges } : {}),
       };
     }
     if (type === 'algebraic') {
@@ -449,6 +478,82 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               />
             </div>
+          </div>
+
+          {/* ── Score ranges ── */}
+          <div className="border-t border-gray-100 pt-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-gray-600">Rangos de puntaje parcial</p>
+                <p className="text-[11px] text-gray-400">
+                  Define intervalos [mín, máx] con su fracción de puntaje (0–1). Se evalúan en orden — el primer rango que incluya la respuesta del alumno determina el puntaje.
+                  Si no defines rangos, se usa la tolerancia arriba.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addScoreRange}
+                className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 bg-white whitespace-nowrap ml-3"
+              >
+                + Rango
+              </button>
+            </div>
+
+            {scoreRanges.length > 0 && (
+              <div className="space-y-1.5">
+                {/* Header */}
+                <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 text-[10px] font-semibold text-gray-400 uppercase px-1">
+                  <span>Mínimo</span>
+                  <span>Máximo</span>
+                  <span>Fracción (0–1)</span>
+                  <span></span>
+                </div>
+                {scoreRanges.map((r, idx) => (
+                  <div key={idx} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
+                    <input
+                      type="number"
+                      step="any"
+                      value={r.min}
+                      onChange={(e) => updateScoreRange(idx, { min: e.target.value })}
+                      placeholder="-∞"
+                      className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <input
+                      type="number"
+                      step="any"
+                      value={r.max}
+                      onChange={(e) => updateScoreRange(idx, { max: e.target.value })}
+                      placeholder="+∞"
+                      className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        value={r.fraction}
+                        onChange={(e) => updateScoreRange(idx, { fraction: e.target.value })}
+                        placeholder="1"
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      {r.fraction !== '' && (
+                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none">
+                          = {Math.round(parseFloat(r.fraction || '0') * (score || 0) * 100) / 100} pts
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeScoreRange(idx)}
+                      className="text-red-400 hover:text-red-600 text-xs px-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
