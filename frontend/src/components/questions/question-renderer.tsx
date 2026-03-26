@@ -7,6 +7,7 @@ import { QuestionDragDrop } from './question-drag-drop';
 import { QuestionFillBlank } from './question-fill-blank';
 import { QuestionMultiWeighted } from './question-multi-weighted';
 import { QuestionInlineChoice } from './question-inline-choice';
+import { QuestionImageHotspot } from './question-image-hotspot';
 
 interface Question {
   id: string;
@@ -131,6 +132,15 @@ export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendere
           case 'inline_choice':
             return (
               <QuestionInlineChoice
+                question={normalizedQuestion}
+                answer={answer}
+                onAnswer={onAnswer}
+              />
+            );
+
+          case 'image_hotspot':
+            return (
+              <QuestionImageHotspot
                 question={normalizedQuestion}
                 answer={answer}
                 onAnswer={onAnswer}

@@ -59,6 +59,7 @@ def public_config():
             "fill_blank",
             "multi_answer_weighted",
             "inline_choice",
+            "image_hotspot",
         ],
     }
 

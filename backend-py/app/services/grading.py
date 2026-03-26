@@ -154,6 +154,29 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
             is_correct = selected == correct_values
             return is_correct, score_obtained
 
+    elif question.type == "image_hotspot":
+        # Hotspots defined in metadata_json.hotspots: [{id, x, y, options, correct}]
+        # Answer: {"0": "selected", "1": "selected", ...}
+        meta = question.metadata_json
+        if not isinstance(meta, dict):
+            meta = {}
+        hotspots = meta.get("hotspots", [])
+        if not hotspots:
+            return False, 0.0
+        if not isinstance(answer_json, dict):
+            return False, 0.0
+        correct_count = 0
+        for spot in hotspots:
+            sid = str(spot.get("id", ""))
+            correct = str(spot.get("correct", "")).strip()
+            given = str(answer_json.get(sid, "")).strip()
+            if given.lower() == correct.lower():
+                correct_count += 1
+        fraction = correct_count / len(hotspots)
+        score_obtained = round(question.score * fraction, 4)
+        is_correct = fraction >= 1.0
+        return (is_correct if fraction > 0 else False), score_obtained
+
     elif question.type == "inline_choice":
         # Blanks defined in metadata_json.inline_blanks
         # Answer is a dict { "0": "selected_text", "1": "selected_text", ... }

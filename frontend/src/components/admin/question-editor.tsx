@@ -12,6 +12,7 @@ const QUESTION_TYPES = [
   { value: 'numeric', label: 'Numérico' },
   { value: 'algebraic', label: 'Algebraico' },
   { value: 'drag_drop', label: 'Ordenar (drag & drop)' },
+  { value: 'image_hotspot', label: 'Identificar en imagen (hotspot)' },
 ];
 
 const NUMERIC_COMPARISONS = [
@@ -159,6 +160,159 @@ function ImageField({ value, onChange, label = 'Imagen' }: { value: string; onCh
   );
 }
 
+// ─── HotspotEditor sub-component ────────────────────────────────────────────
+
+interface HotspotDraft { id: number; x: number; y: number; options: string[]; correct: string; }
+
+interface HotspotEditorProps {
+  imageUrl: string;
+  hotspots: HotspotDraft[];
+  onImageClick: (xPct: number, yPct: number) => void;
+  onRemove: (idx: number) => void;
+  onUpdate: (idx: number, patch: Partial<HotspotDraft>) => void;
+  onAddOption: (hIdx: number) => void;
+  onUpdateOption: (hIdx: number, oIdx: number, val: string) => void;
+  onRemoveOption: (hIdx: number, oIdx: number) => void;
+}
+
+function HotspotEditor({
+  imageUrl, hotspots, onImageClick, onRemove, onUpdate, onAddOption, onUpdateOption, onRemoveOption
+}: HotspotEditorProps) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [placing, setPlacing] = useState(false);
+
+  function handleImageClick(e: React.MouseEvent<HTMLDivElement>) {
+    if (!placing) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const xPct = ((e.clientX - rect.left) / rect.width) * 100;
+    const yPct = ((e.clientY - rect.top) / rect.height) * 100;
+    onImageClick(Math.round(xPct * 10) / 10, Math.round(yPct * 10) / 10);
+    setPlacing(false);
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Puntos en la imagen (hotspots)</p>
+        <button
+          type="button"
+          onClick={() => setPlacing((p) => !p)}
+          disabled={!imageUrl}
+          className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
+            placing
+              ? 'bg-amber-500 text-white border-amber-600 animate-pulse'
+              : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
+          } disabled:opacity-40 disabled:cursor-not-allowed`}
+        >
+          {placing ? '🎯 Haz clic en la imagen…' : '+ Colocar punto'}
+        </button>
+      </div>
+
+      {!imageUrl && (
+        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+          Primero sube o pega la URL de la imagen arriba para poder colocar puntos.
+        </p>
+      )}
+
+      {imageUrl && (
+        <div
+          className={`relative rounded-xl overflow-hidden border-2 transition-colors ${
+            placing ? 'border-amber-400 cursor-crosshair' : 'border-gray-200 cursor-default'
+          }`}
+          onClick={handleImageClick}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            ref={imgRef}
+            src={imageUrl}
+            alt="Imagen"
+            className="w-full object-contain max-h-[400px] bg-gray-900"
+            draggable={false}
+          />
+
+          {placing && (
+            <div className="absolute inset-0 bg-amber-400/10 flex items-center justify-center pointer-events-none">
+              <span className="bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow">
+                Haz clic donde quieres colocar el punto
+              </span>
+            </div>
+          )}
+
+          {/* Dots */}
+          {hotspots.map((spot, idx) => (
+            <div
+              key={spot.id}
+              style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            >
+              <div className="w-7 h-7 rounded-full bg-yellow-400 border-2 border-yellow-600 flex items-center justify-center shadow-lg">
+                <span className="text-[10px] font-bold text-yellow-900">{idx + 1}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Hotspot list */}
+      {hotspots.length > 0 && (
+        <div className="space-y-3">
+          {hotspots.map((spot, hIdx) => (
+            <div key={spot.id} className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-700">
+                  Punto {spot.id + 1}
+                  <span className="ml-2 text-xs text-gray-400 font-normal">x:{spot.x}% y:{spot.y}%</span>
+                </span>
+                <button type="button" onClick={() => onRemove(hIdx)} className="text-red-400 hover:text-red-600 text-xs">
+                  Eliminar punto
+                </button>
+              </div>
+
+              {/* Options */}
+              <div className="space-y-1.5">
+                {spot.options.map((opt, oIdx) => (
+                  <div key={oIdx} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name={`hotspot_correct_${hIdx}`}
+                      checked={spot.correct === opt}
+                      onChange={() => onUpdate(hIdx, { correct: opt })}
+                      title="Marcar como correcta"
+                      className="h-4 w-4 shrink-0"
+                    />
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => {
+                        const newVal = e.target.value;
+                        const wasCorrect = spot.correct === opt;
+                        onUpdateOption(hIdx, oIdx, newVal);
+                        if (wasCorrect) onUpdate(hIdx, { correct: newVal });
+                      }}
+                      placeholder={`Opción ${oIdx + 1} (ej. Pulmón)`}
+                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <button type="button" onClick={() => onRemoveOption(hIdx, oIdx)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onAddOption(hIdx)}
+                className="text-xs text-blue-600 hover:text-blue-800"
+              >
+                + Agregar opción
+              </button>
+              <p className="text-xs text-gray-400">Selecciona el radio de la opción correcta.</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Editor ─────────────────────────────────────────────────────────────
 
 export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
@@ -201,6 +355,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
   const hasExpected = ['numeric', 'algebraic'].includes(type);
   const isInlineChoice = type === 'inline_choice';
   const isNumeric = type === 'numeric';
+  const isHotspot = type === 'image_hotspot';
 
   // ── Options helpers ──
   function addOption() {
@@ -251,6 +406,35 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
     );
   }
 
+  // ── Hotspot state + helpers ──
+  const [hotspots, setHotspots] = useState<HotspotDraft[]>(() => {
+    const raw = initMeta?.hotspots as HotspotDraft[] | undefined;
+    return raw ?? [];
+  });
+
+  function addHotspot(xPct: number, yPct: number) {
+    setHotspots((prev) => [...prev, { id: prev.length, x: xPct, y: yPct, options: [''], correct: '' }]);
+  }
+  function removeHotspot(idx: number) {
+    setHotspots((prev) => prev.filter((_, i) => i !== idx).map((h, i) => ({ ...h, id: i })));
+  }
+  function updateHotspot(idx: number, patch: Partial<HotspotDraft>) {
+    setHotspots((prev) => prev.map((h, i) => (i === idx ? { ...h, ...patch } : h)));
+  }
+  function addHotspotOption(hIdx: number) {
+    setHotspots((prev) => prev.map((h, i) => i === hIdx ? { ...h, options: [...h.options, ''] } : h));
+  }
+  function updateHotspotOption(hIdx: number, oIdx: number, val: string) {
+    setHotspots((prev) => prev.map((h, i) =>
+      i === hIdx ? { ...h, options: h.options.map((o, j) => j === oIdx ? val : o) } : h
+    ));
+  }
+  function removeHotspotOption(hIdx: number, oIdx: number) {
+    setHotspots((prev) => prev.map((h, i) =>
+      i === hIdx ? { ...h, options: h.options.filter((_, j) => j !== oIdx) } : h
+    ));
+  }
+
   // ── Score range helpers ──
   function addScoreRange() {
     setScoreRanges((prev) => [...prev, { min: '', max: '', fraction: '1' }]);
@@ -287,6 +471,9 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
     }
     if (isInlineChoice) {
       return { inline_blanks: inlineBlanks };
+    }
+    if (isHotspot) {
+      return { hotspots };
     }
     return null;
   }
@@ -738,6 +925,20 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
             </div>
           ))}
         </div>
+      )}
+
+      {/* ── Image hotspot editor ── */}
+      {isHotspot && (
+        <HotspotEditor
+          imageUrl={imageUrl}
+          hotspots={hotspots}
+          onImageClick={addHotspot}
+          onRemove={removeHotspot}
+          onUpdate={updateHotspot}
+          onAddOption={addHotspotOption}
+          onUpdateOption={updateHotspotOption}
+          onRemoveOption={removeHotspotOption}
+        />
       )}
 
       {/* ── Actions ── */}
