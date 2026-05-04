@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSimulatorStore } from '@/store/simulator-store';
 import {
@@ -14,7 +14,8 @@ import {
   fetchExams,
   fetchFormTemplate,
 } from '@/lib/api';
-import { useExamSecurity, SecurityEventType } from '@/hooks/use-exam-security';
+import { usePageVisibility } from '@/lib/usePageVisibility';
+import { useOnlineStatus } from '@/lib/useOnlineStatus';
 import { SecurityWarning } from '@/components/security-warning';
 import { FullscreenPrompt } from '@/components/exam/fullscreen-prompt';
 import { ReviewModal } from '@/components/exam/review-modal';
@@ -119,6 +120,13 @@ function QuestionNavPanel({
   );
 }
 
+// Compute expires-at from started_at + duration (backend doesn't expose expires_at)
+function computeExpiresAt(startedAt: string | null | undefined, durationMinutes: number): string | null {
+  if (!startedAt) return null;
+  const ms = new Date(startedAt.includes('Z') || startedAt.includes('+') ? startedAt : startedAt + 'Z').getTime();
+  return new Date(ms + durationMinutes * 60 * 1000).toISOString();
+}
+
 // ─── Main component ───────────────────────────────────────────────
 export function ExamenClient() {
   const searchParams = useSearchParams();
@@ -139,6 +147,12 @@ export function ExamenClient() {
     setAnswer,
     toggleMarkForReview,
     reset,
+    expiresAt, // New: Get expiresAt from store
+    isOnline, // New: Get online status from store
+    setOnlineStatus, // New: Set online status in store
+    syncPendingAnswers, // New: Sync pending answers
+    isSaving, // New: Get saving status from store
+    lastSaveError, // New: Get last save error from store
   } = useSimulatorStore();
 
   const [examTitle, setExamTitle] = useState('Simulador Escobita');
@@ -149,22 +163,26 @@ export function ExamenClient() {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [securityWarningsCount, setSecurityWarningsCount] = useState(0); // New: Track security warnings
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false); // New: Show security warning UI
 
-  const handleSecurityEvent = useCallback(
-    (type: SecurityEventType, details?: Record<string, unknown>) => {
-      if (attemptId) logSecurityEvent(attemptId, type, details).catch(() => {});
-    },
-    [attemptId]
-  );
+  const isPageHidden = usePageVisibility(); // New: Hook for page visibility
+  const onlineStatus = useOnlineStatus(); // New: Hook for online status
 
-  const { isFullscreen, requestFullscreen, showWarning, warningMessage } = useExamSecurity({
-    enabled: status === 'in_progress',
-    onEvent: handleSecurityEvent,
-  });
+  // Ref to store the latest exam data, including allowSecurityEvents
+  const examRef = useRef<any>(null);
 
-  // Suppress unused variable warning
-  void isFullscreen;
+  // Update Zustand store with online status
+  useEffect(() => {
+    setOnlineStatus(onlineStatus);
+  }, [onlineStatus, setOnlineStatus]);
+
+  // Sync pending answers when online status changes to true
+  useEffect(() => {
+    if (isOnline) {
+      syncPendingAnswers();
+    }
+  }, [isOnline, syncPendingAnswers]);
 
   const attemptIdFromUrl = searchParams.get('attempt');
 
@@ -174,20 +192,21 @@ export function ExamenClient() {
       try {
         if (attemptIdFromUrl) {
           const attempt = await fetchAttempt(attemptIdFromUrl);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const a = attempt as any;
-          const examData = a.exam;
+          const a = attempt as any; // apiFetch converts to camelCase
+          const examData = a.exam; // apiFetch converts to camelCase
           setExamTitle(examData?.title ?? 'Simulador Escobita');
 
           // Support both snake_case (backend) and camelCase field names
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // Now that apiFetch converts, we expect camelCase directly
           const mapAnswer = (ans: any) => ({
-            questionId: ans.question_id ?? ans.questionId,
-            answerJson: ans.answer_json ?? ans.answerJson,
-            isMarkedForReview: ans.is_marked_for_review ?? ans.isMarkedForReview ?? false,
+            questionId: ans.questionId,
+            answerJson: ans.answerJson,
+            isMarkedForReview: ans.isMarkedForReview ?? false,
           });
 
-          if (a.status === 'submitted' || a.status === 'expired') {
+          const dur = examData?.durationMinutes ?? 60;
+          if (a.status === 'submitted' || a.status === 'expired') { // status is already camelCase from apiFetch
             const answersMap = Object.fromEntries(
               (a.answers ?? []).map((ans: ReturnType<typeof mapAnswer>) => [
                 mapAnswer(ans as never).questionId, mapAnswer(ans as never).answerJson,
@@ -197,11 +216,12 @@ export function ExamenClient() {
             setResult(res);
             setAttempt({
               attemptId: a.id,
-              examId: a.exam_id ?? a.examId,
-              startedAt: a.started_at ?? a.startedAt,
-              durationMinutes: examData?.duration_minutes ?? examData?.durationMinutes ?? 60,
-              totalScore: examData?.total_score ?? examData?.totalScore ?? 100,
-              calculatorEnabled: examData?.calculator_enabled ?? examData?.calculatorEnabled ?? true,
+              examId: a.examId,
+              startedAt: a.startedAt,
+              durationMinutes: dur,
+              totalScore: examData?.totalScore ?? 100,
+              calculatorEnabled: examData?.calculatorEnabled ?? true,
+              expiresAt: computeExpiresAt(a.startedAt, dur),
               questions: examData?.questions ?? [],
               answers: answersMap,
               status: a.status,
@@ -215,16 +235,17 @@ export function ExamenClient() {
             );
             const markedIds = (a.answers ?? [])
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              .filter((ans: any) => ans.is_marked_for_review ?? ans.isMarkedForReview)
+              .filter((ans: any) => ans.isMarkedForReview) // Now always camelCase
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              .map((ans: any) => ans.question_id ?? ans.questionId);
+              .map((ans: any) => ans.questionId); // Now always camelCase
             setAttempt({
               attemptId: a.id,
-              examId: a.exam_id ?? a.examId,
-              startedAt: a.started_at ?? a.startedAt,
-              durationMinutes: examData?.duration_minutes ?? examData?.durationMinutes ?? 60,
-              totalScore: examData?.total_score ?? examData?.totalScore ?? 100,
-              calculatorEnabled: examData?.calculator_enabled ?? examData?.calculatorEnabled ?? true,
+              examId: a.examId,
+              startedAt: a.startedAt,
+              durationMinutes: dur,
+              totalScore: examData?.totalScore ?? 100,
+              calculatorEnabled: examData?.calculatorEnabled ?? true,
+              expiresAt: computeExpiresAt(a.startedAt, dur),
               questions: examData?.questions ?? [],
               answers: answersMap,
               markedForReview: markedIds,
@@ -240,7 +261,7 @@ export function ExamenClient() {
           const exams = await fetchExams();
           const list = Array.isArray(exams) ? exams : [];
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const exam = list.find((e: any) => e.is_published ?? e.isPublished) ?? list[0];
+          const exam = list.find((e: any) => e.isPublished) ?? list[0]; // Now always camelCase
           if (!exam) {
             setError('No hay simuladores disponibles.');
             return;
@@ -254,13 +275,15 @@ export function ExamenClient() {
           const attemptId = att.id;
           router.replace(`/examen?attempt=${attemptId}`);
           setExamTitle(examData?.title ?? exam.title ?? 'Simulador Escobita');
+          const startDur = examData?.durationMinutes ?? (exam as any).durationMinutes ?? 60;
           setAttempt({
             attemptId,
-            examId: att.exam_id ?? att.examId ?? exam.id,
-            startedAt: att.started_at ?? att.startedAt,
-            durationMinutes: examData?.duration_minutes ?? examData?.durationMinutes ?? exam.duration_minutes ?? exam.durationMinutes ?? 60,
-            totalScore: examData?.total_score ?? examData?.totalScore ?? exam.total_score ?? exam.totalScore ?? 100,
-            calculatorEnabled: examData?.calculator_enabled ?? examData?.calculatorEnabled ?? exam.calculator_enabled ?? exam.calculatorEnabled ?? true,
+            examId: att.examId ?? exam.id,
+            startedAt: att.startedAt,
+            durationMinutes: startDur,
+            totalScore: examData?.totalScore ?? (exam as any).totalScore ?? 100,
+            calculatorEnabled: examData?.calculatorEnabled ?? (exam as any).calculatorEnabled ?? true,
+            expiresAt: computeExpiresAt(att.startedAt, startDur),
             questions: examData?.questions ?? [],
             answers: {},
             markedForReview: [],
@@ -278,6 +301,23 @@ export function ExamenClient() {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attemptIdFromUrl]);
+
+  // Security Event Logging (Page Visibility)
+  useEffect(() => {
+    // Assuming exam object has a property like `allowSecurityEvents`
+    // For now, we'll use a placeholder `true` if not explicitly set in examRef.current
+    const allowSecurityEvents = examRef.current?.allowSecurityEvents ?? true;
+
+    if (!allowSecurityEvents || !attemptId) return;
+
+    if (isPageHidden) {
+      setSecurityWarningsCount((prev) => prev + 1);
+      setShowSecurityWarning(true);
+      logSecurityEvent(attemptId, 'tab_change', { count: securityWarningsCount + 1 });
+      const timer = setTimeout(() => setShowSecurityWarning(false), 3000); // Hide warning after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isPageHidden, attemptId, securityWarningsCount]);
 
   async function doSubmit() {
     if (!attemptId || status !== 'in_progress') return;
@@ -297,13 +337,20 @@ export function ExamenClient() {
     setShowReviewModal(true);
   }
 
+  async function handleEnterFullscreen() {
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch {
+      // Ignore browser/user rejection and continue.
+    } finally {
+      setShowFullscreenPrompt(false);
+    }
+  }
+
   async function handleAnswer(questionId: string, value: unknown) {
     setAnswer(questionId, value);
-    if (!attemptId || status !== 'in_progress') return;
-    setSaving(true);
-    try { await saveAnswer(attemptId, questionId, value); }
-    catch { /* silent */ }
-    finally { setTimeout(() => setSaving(false), 600); }
+    // The actual saving logic is now handled within useSimulatorStore.setAnswer
+    // This function just updates the local state and triggers the store's save logic.
   }
 
   async function handleToggleMark() {
@@ -385,12 +432,12 @@ export function ExamenClient() {
   return (
     <>
       {/* Overlays */}
-      <SecurityWarning visible={showWarning} message={warningMessage} />
+      <SecurityWarning visible={showSecurityWarning} message="Cambio de pestaña detectado. ¡Cuidado!" />
 
       {showFullscreenPrompt && (
         <FullscreenPrompt
           examTitle={examTitle}
-          onEnterFullscreen={() => { requestFullscreen(); setShowFullscreenPrompt(false); }}
+          onEnterFullscreen={handleEnterFullscreen}
           onSkip={() => setShowFullscreenPrompt(false)}
         />
       )}
@@ -458,15 +505,17 @@ export function ExamenClient() {
           </div>
 
           {/* Saving indicator */}
-          {saving && (
-            <span className="hidden sm:block text-xs text-slate-400 animate-pulse">Guardando...</span>
+          {isSaving && (
+            <span className="hidden sm:block text-xs text-blue-400 animate-pulse">Guardando...</span>
+          )}
+          {lastSaveError && (
+            <span className="hidden sm:block text-xs text-red-400">Error de guardado</span>
           )}
 
           {/* Timer */}
-          {startedAt && (
+          {expiresAt && ( // Use expiresAt for Timer
             <Timer
-              startedAt={startedAt}
-              durationMinutes={durationMinutes}
+              expiresAt={expiresAt}
               onExpire={handleExpire}
               expired={status !== 'in_progress'}
             />
@@ -599,11 +648,11 @@ export function ExamenClient() {
 
           {/* RIGHT: Tools panel */}
           <aside className="hidden xl:flex flex-col w-60 flex-shrink-0 bg-white border-l border-slate-200">
-            <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50">
+            <div className="px-4 py-2.5 border-b border-slate-200 bg-slate-50 flex-shrink-0">
               <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Herramientas</p>
             </div>
 
-            <div className="p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {/* Progress summary */}
               <div className="rounded-lg border border-slate-200 overflow-hidden">
                 <div className="bg-slate-50 px-3 py-2 border-b border-slate-200">

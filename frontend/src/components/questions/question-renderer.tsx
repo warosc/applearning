@@ -43,8 +43,11 @@ interface QuestionRendererProps {
 
 export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendererProps) {
   // Normalize options to ensure consistent shape for sub-components
+  // Also normalize metadata_json: API converts snake_case keys to camelCase, so the runtime
+  // key may be metadataJson rather than metadata_json — provide a fallback.
   const normalizedQuestion = {
     ...question,
+    metadata_json: question.metadata_json ?? (question as Record<string, unknown>).metadataJson as Record<string, unknown> | null ?? null,
     options: (question.options ?? []).map((o) => ({
       id: o.id ?? o.value,
       value: o.value,

@@ -29,7 +29,7 @@ interface Option {
   value: string;
   is_correct: boolean;
   weight: number;
-  order_index: number;
+  orderIndex: number;
   image_url?: string;
 }
 
@@ -58,7 +58,7 @@ interface QuestionData {
   score: number;
   order_index: number;
   materia?: string;
-  tema?: string;
+  topic?: string;
   metadata_json?: Record<string, unknown> | null;
   options: Option[];
 }
@@ -70,15 +70,16 @@ interface Props {
   onCancel: () => void;
 }
 
-function normalizeOption(o: Record<string, unknown>, i: number): Option {
+function normalizeOption(o: Record<string, unknown> | Option, i: number): Option {
+  const option = o as Record<string, unknown>;
   return {
-    id: o.id as string | undefined,
-    label: (o.label as string) ?? '',
-    value: (o.value as string) ?? '',
-    is_correct: (o.is_correct ?? o.isCorrect ?? false) as boolean,
-    weight: (o.weight ?? 0) as number,
-    order_index: (o.order_index ?? o.orderIndex ?? i) as number,
-    image_url: (o.image_url ?? '') as string,
+    id: option.id as string | undefined,
+    label: option.label as string ?? '',
+    value: option.value as string ?? '',
+    is_correct: (option.is_correct as boolean | undefined) ?? (option.isCorrect as boolean | undefined) ?? false,
+    weight: option.weight as number ?? 0,
+    orderIndex: (option.orderIndex as number | undefined) ?? (option.order_index as number | undefined) ?? i,
+    image_url: (option.image_url as string | undefined) ?? (option.imageUrl as string | undefined) ?? '',
   };
 }
 
@@ -320,20 +321,20 @@ function HotspotEditor({
 // ─── Main Editor ─────────────────────────────────────────────────────────────
 
 export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
-  const init = initialData as Record<string, unknown> | undefined;
-  const initMeta = (init?.metadata_json ?? init?.metadataJson) as Record<string, unknown> | null | undefined;
+  const init = initialData as any; // Use 'any' for initialData after conversion
+  const initMeta = init?.metadataJson as Record<string, unknown> | null | undefined;
 
-  const [type, setType] = useState((init?.type as string) ?? 'single_choice');
-  const [prompt, setPrompt] = useState((init?.prompt as string) ?? '');
-  const [imageUrl, setImageUrl] = useState((init?.image_url as string) ?? '');
-  const [score, setScore] = useState((init?.score as number) ?? 10);
-  const [orderIndex, setOrderIndex] = useState((init?.order_index ?? init?.orderIndex ?? 0) as number);
-  const [materia, setMateria] = useState((init?.materia as string) ?? '');
-  const [tema, setTema] = useState((init?.tema as string) ?? '');
+  const [type, setType] = useState(init?.type as string ?? 'single_choice');
+  const [prompt, setPrompt] = useState(init?.prompt as string ?? '');
+  const [imageUrl, setImageUrl] = useState(init?.imageUrl as string ?? '');
+  const [score, setScore] = useState(init?.score as number ?? 10);
+  const [orderIndex, setOrderIndex] = useState(init?.orderIndex as number ?? 0);
+  const [materia, setMateria] = useState(init?.materia as string ?? '');
+  const [topic, setTopic] = useState(init?.tema as string ?? init?.topic as string ?? ''); // Changed from tema to topic
 
   // ── Numeric/algebraic ──
   const [expectedAnswer, setExpectedAnswer] = useState(initMeta?.expected as string ?? '');
-  const [numericComparison, setNumericComparison] = useState((initMeta?.comparison as string) ?? 'range');
+  const [numericComparison, setNumericComparison] = useState(initMeta?.comparison as string ?? 'range');
   const [numericTolerance, setNumericTolerance] = useState((initMeta?.tolerance as number) ?? 0.001);
   const [numericUnit, setNumericUnit] = useState((initMeta?.unit as string) ?? '');
   const [unitsInput, setUnitsInput] = useState(((initMeta?.units as string[]) ?? []).join(', '));
@@ -344,13 +345,13 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
 
   // ── Options (for choice/fill/weighted/drag types) ──
   const [options, setOptions] = useState<Option[]>(() => {
-    const raw = (init?.options as Record<string, unknown>[] | undefined) ?? [];
+    const raw = (init?.options as Option[] | undefined) ?? [];
     return raw.map(normalizeOption);
   });
 
   // ── Inline blanks ──
   const [inlineBlanks, setInlineBlanks] = useState<InlineBlank[]>(() => {
-    return (initMeta?.inline_blanks as InlineBlank[]) ?? [];
+    return (initMeta?.inlineBlanks as InlineBlank[]) ?? [];
   });
 
   const hasOptions = ['single_choice', 'multiple_choice', 'drag_drop', 'fill_blank', 'multi_answer_weighted'].includes(type); // drag_categorize has its own editor
@@ -365,11 +366,11 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
   function addOption() {
     setOptions((prev) => [
       ...prev,
-      { label: '', value: `opt${prev.length}`, is_correct: false, weight: 0, order_index: prev.length, image_url: '' },
+      { label: '', value: `opt${prev.length}`, is_correct: false, weight: 0, orderIndex: prev.length, image_url: '' },
     ]);
   }
   function removeOption(idx: number) {
-    setOptions((prev) => prev.filter((_, i) => i !== idx).map((o, i) => ({ ...o, order_index: i })));
+    setOptions((prev) => prev.filter((_, i) => i !== idx).map((o, i) => ({ ...o, orderIndex: i })));
   }
   function updateOption(idx: number, patch: Partial<Option>) {
     setOptions((prev) => prev.map((o, i) => (i === idx ? { ...o, ...patch } : o)));
@@ -447,7 +448,8 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
   // correct_map: {option_value: cat_id} — derived from option.is_correct repurposed
   // We store it in metadata directly; editor uses a per-option select
   const [correctMap, setCorrectMap] = useState<Record<string, string>>(() => {
-    return (initMeta?.correct_map as Record<string, string>) ?? {};
+    // API converts correct_map → correctMap via snakeToCamel; accept both keys
+    return ((initMeta?.correctMap ?? initMeta?.correct_map) as Record<string, string>) ?? {};
   });
 
   function addCategory() {
@@ -495,20 +497,20 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
         tolerance: numericTolerance,
         ...(numericUnit ? { unit: numericUnit } : {}),
         ...(units.length ? { units } : {}),
-        ...(parsedRanges.length ? { score_ranges: parsedRanges } : {}),
+        ...(parsedRanges.length ? { scoreRanges: parsedRanges } : {}),
       };
     }
     if (type === 'algebraic') {
       return { expected: expectedAnswer };
     }
     if (isInlineChoice) {
-      return { inline_blanks: inlineBlanks };
+      return { inlineBlanks };
     }
     if (isHotspot) {
       return { hotspots };
     }
     if (isCategorize) {
-      return { categories, correct_map: correctMap };
+      return { categories, correctMap };
     }
     return null;
   }
@@ -519,13 +521,13 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
       ...(init?.id ? { id: init.id as string } : {}),
       type,
       prompt,
-      ...(imageUrl ? { image_url: imageUrl } : {}),
+      ...(imageUrl ? { image_url: imageUrl } : {}), // Convert to snake_case for backend
       score,
-      order_index: orderIndex,
+      order_index: orderIndex, // Convert to snake_case for backend
       ...(materia ? { materia } : {}),
-      ...(tema ? { tema } : {}),
+      ...(topic ? { tema: topic } : {}), // Convert to snake_case for backend
       options: hasOptions || isCategorize ? options : [],
-      metadata_json: buildMetadata(),
+      metadata_json: buildMetadata(), // Convert to snake_case for backend
     };
     onSave(data);
   }
@@ -621,9 +623,12 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
           <label className="block text-xs font-medium text-gray-600 mb-1">Tema</label>
           <input
             type="text"
-            value={tema}
-            onChange={(e) => setTema(e.target.value)}
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            onBlur={(e) => setTopic(e.target.value.trim())} // Trim on blur
             placeholder="ej. Acentuación"
+            // No lowercase for 'tema' as it might be a proper noun or case-sensitive in backend logic
+            // If backend expects lowercase, add .toLowerCase() here
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           />
         </div>
@@ -643,6 +648,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 type="text"
                 value={expectedAnswer}
                 onChange={(e) => setExpectedAnswer(e.target.value)}
+                onBlur={(e) => setExpectedAnswer(e.target.value.trim())} // Trim on blur
                 required
                 placeholder="ej. 9.8"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
@@ -813,12 +819,12 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                   {type !== 'drag_drop' && (
                     <input
                       type={type === 'single_choice' || type === 'fill_blank' ? 'radio' : 'checkbox'}
-                      checked={opt.is_correct}
+                      checked={opt.is_correct} // Use is_correct for internal state
                       onChange={(e) => {
                         if (type === 'single_choice' || type === 'fill_blank') {
-                          setOptions((prev) => prev.map((o, i) => ({ ...o, is_correct: i === idx })));
+                          setOptions((prev) => prev.map((o, i) => ({ ...o, is_correct: i === idx }))); // Use is_correct
                         } else {
-                          updateOption(idx, { is_correct: e.target.checked });
+                          updateOption(idx, { is_correct: e.target.checked }); // Use is_correct
                         }
                       }}
                       name={type === 'single_choice' || type === 'fill_blank' ? 'correct' : undefined}
@@ -836,9 +842,10 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                     onChange={(e) =>
                       updateOption(idx, {
                         label: e.target.value,
-                        value: e.target.value.toLowerCase().replace(/\s+/g, '_'),
+                        value: e.target.value.toLowerCase().replace(/\s+/g, '_'), // value is still snake_case for backend
                       })
                     }
+                    onBlur={(e) => updateOption(idx, { label: e.target.value.trim() })} // Trim label on blur
                     placeholder="Etiqueta de la opción"
                     required
                     className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -850,6 +857,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                       type="number"
                       value={opt.weight}
                       onChange={(e) => updateOption(idx, { weight: Number(e.target.value) })}
+                      onBlur={(e) => updateOption(idx, { weight: Number(e.target.value) })} // Ensure number is parsed on blur
                       min={0}
                       max={1}
                       step={0.1}
@@ -867,8 +875,9 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 {/* Option image */}
                 <div className="pl-6">
                   <ImageField
-                    value={opt.image_url ?? ''}
-                    onChange={(url) => updateOption(idx, { image_url: url })}
+                    value={opt.image_url ?? ''} // Use image_url for internal state
+                    onChange={(url) => updateOption(idx, { image_url: url })} // Use image_url
+                    // No trim/lowercase for URL
                     label="Imagen de opción (opcional)"
                   />
                 </div>
@@ -931,6 +940,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                       type="text"
                       value={opt}
                       onChange={(e) => {
+                        // No trim/lowercase for inline blank options, as they might be case-sensitive or contain spaces
                         const newVal = e.target.value;
                         // if this was the correct option, update correct too
                         const wasCorrect = blank.correct === opt;
@@ -994,6 +1004,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                   type="text"
                   value={cat.label}
                   onChange={(e) => updateCategory(cIdx, e.target.value)}
+                  onBlur={(e) => updateCategory(cIdx, e.target.value.trim())} // Trim label on blur
                   placeholder={`Nombre categoría ${cIdx + 1}`}
                   required
                   className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -1030,6 +1041,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                       value: e.target.value.toLowerCase().replace(/\s+/g, '_'),
                     })
                   }
+                  onBlur={(e) => updateOption(idx, { label: e.target.value.trim() })} // Trim label on blur
                   placeholder="Elemento (ej. VIH)"
                   required
                   className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"

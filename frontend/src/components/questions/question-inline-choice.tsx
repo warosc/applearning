@@ -28,7 +28,10 @@ interface QuestionInlineChoiceProps {
 }
 
 export function QuestionInlineChoice({ question, answer, onAnswer }: QuestionInlineChoiceProps) {
-  const blanks: InlineBlank[] = question.metadata_json?.inline_blanks ?? [];
+  // API converts inline_blanks → inlineBlanks via snakeToCamel; accept both keys
+  const blanks: InlineBlank[] = question.metadata_json?.inline_blanks
+    ?? (question.metadata_json as Record<string, unknown> | undefined)?.inlineBlanks as InlineBlank[] | undefined
+    ?? [];
   const current: Record<string, string> = (answer && typeof answer === 'object' && !Array.isArray(answer))
     ? (answer as Record<string, string>)
     : {};
