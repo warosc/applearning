@@ -67,7 +67,7 @@ export function Calculator() {
     active?: boolean;
     wide?: boolean;
   }) {
-    const base = `h-11 rounded-xl text-sm font-bold transition-all active:scale-95 select-none cursor-pointer flex items-center justify-center ${wide ? 'col-span-2' : ''}`;
+    const base = `h-10 sm:h-11 rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 select-none cursor-pointer flex items-center justify-center ${wide ? 'col-span-2' : ''}`;
     const styles: Record<Variant, string> = {
       num: 'bg-slate-100 hover:bg-slate-200 text-slate-800',
       fn:  'bg-slate-200 hover:bg-slate-300 text-slate-600',
@@ -87,7 +87,7 @@ export function Calculator() {
   const isActiveOp = (o: CalcOp) => op === o;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-md w-64 select-none">
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-md w-full select-none">
 
       {/* ── Display ── */}
       <div className="bg-slate-800 px-4 pt-3 pb-2">
@@ -109,7 +109,7 @@ export function Calculator() {
       </div>
 
       {/* ── Buttons ── */}
-      <div className="p-2 grid grid-cols-5 gap-1.5">
+      <div className="p-1.5 sm:p-2 grid grid-cols-5 gap-1 sm:gap-1.5">
 
         {/* Row 1 — fn + trig */}
         <Btn label="⌫"   onClick={backspace}                         variant="fn" />

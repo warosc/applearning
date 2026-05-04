@@ -524,7 +524,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
       order_index: orderIndex,
       ...(materia ? { materia } : {}),
       ...(tema ? { tema } : {}),
-      options: hasOptions ? options : [],
+      options: hasOptions || isCategorize ? options : [],
       metadata_json: buildMetadata(),
     };
     onSave(data);

@@ -133,7 +133,7 @@ export async function saveAnswer(attemptId: string, questionId: string, answerJs
   const res = await fetch(`${API_URL}/api/attempts/${attemptId}/answer`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ questionId, answerJson }),
+    body: JSON.stringify({ question_id: questionId, answer_json: answerJson }),
   });
   if (!res.ok) throw new Error('Error al guardar respuesta');
   return res.json();
@@ -158,7 +158,7 @@ export async function submitForm(attemptId: string, payload: Record<string, unkn
   const res = await fetch(`${API_URL}/api/attempts/${attemptId}/form-submit`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ payload }),
+    body: JSON.stringify({ payload_json: payload }),
   });
   if (!res.ok) throw new Error('Error al guardar formulario');
   return res.json();
@@ -174,7 +174,7 @@ export async function markForReview(attemptId: string, questionId: string, marke
   const res = await fetch(`${API_URL}/api/attempts/${attemptId}/mark-review`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ questionId, marked }),
+    body: JSON.stringify({ question_id: questionId, marked }),
   });
   if (!res.ok) throw new Error('Error al marcar pregunta');
   return res.json();

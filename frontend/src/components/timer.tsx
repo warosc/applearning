@@ -11,11 +11,18 @@ interface TimerProps {
 }
 
 function getRemaining(startedAt: string, durationMinutes: number): number {
-  const end = new Date(startedAt).getTime() + durationMinutes * 60 * 1000;
-  return Math.max(0, Math.floor((end - Date.now()) / 1000));
+  if (!startedAt) return 0;
+  const start = new Date(startedAt).getTime();
+  if (isNaN(start)) return 0;
+  const dur = Number(durationMinutes);
+  if (isNaN(dur)) return 0;
+  const end = start + dur * 60 * 1000;
+  const rem = Math.max(0, Math.floor((end - Date.now()) / 1000));
+  return isNaN(rem) ? 0 : rem;
 }
 
 function fmt(s: number): string {
+  if (isNaN(s) || s < 0) return '00:00';
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;
@@ -44,7 +51,7 @@ export function Timer({ startedAt, durationMinutes, onExpire, expired }: TimerPr
   const isWarning = remaining <= 5 * 60 && remaining > 60;
   const isCritical = remaining <= 60 && remaining > 0;
 
-  let containerCls = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-sm font-bold transition-all ';
+  let containerCls = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-sm font-bold transition-all flex-shrink-0 ';
   if (expired) {
     containerCls += 'bg-red-500 text-white';
   } else if (isCritical) {
