@@ -185,6 +185,7 @@ export function ExamenClient() {
   }, [isOnline, syncPendingAnswers]);
 
   const attemptIdFromUrl = searchParams.get('attempt');
+  const examIdFromUrl = searchParams.get('exam');
 
   // Init
   useEffect(() => {
@@ -261,7 +262,9 @@ export function ExamenClient() {
           const exams = await fetchExams();
           const list = Array.isArray(exams) ? exams : [];
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const exam = list.find((e: any) => e.isPublished) ?? list[0]; // Now always camelCase
+          const exam = (examIdFromUrl ? list.find((e: any) => e.id === examIdFromUrl) : null)
+            ?? list.find((e: any) => e.isPublished)
+            ?? list[0];
           if (!exam) {
             setError('No hay simuladores disponibles.');
             return;

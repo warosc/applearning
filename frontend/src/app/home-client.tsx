@@ -186,7 +186,7 @@ export function HomeClient() {
                   </div>
                 </div>
                 <Button
-                  onClick={() => router.push('/examen')}
+                  onClick={() => router.push(`/examen?exam=${exam.id}`)}
                   className="flex-shrink-0 gap-1"
                 >
                   Iniciar
