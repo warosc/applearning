@@ -29,7 +29,7 @@ interface Option {
   value: string;
   is_correct: boolean;
   weight: number;
-  orderIndex: number;
+  order_index: number;
   image_url?: string;
 }
 
@@ -78,7 +78,7 @@ function normalizeOption(o: Record<string, unknown> | Option, i: number): Option
     value: option.value as string ?? '',
     is_correct: (option.is_correct as boolean | undefined) ?? (option.isCorrect as boolean | undefined) ?? false,
     weight: option.weight as number ?? 0,
-    orderIndex: (option.orderIndex as number | undefined) ?? (option.order_index as number | undefined) ?? i,
+    order_index: (option.order_index as number | undefined) ?? (option.orderIndex as number | undefined) ?? i,
     image_url: (option.image_url as string | undefined) ?? (option.imageUrl as string | undefined) ?? '',
   };
 }
@@ -366,11 +366,11 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
   function addOption() {
     setOptions((prev) => [
       ...prev,
-      { label: '', value: `opt${prev.length}`, is_correct: false, weight: 0, orderIndex: prev.length, image_url: '' },
+      { label: '', value: `opt${prev.length}`, is_correct: false, weight: 0, order_index: prev.length, image_url: '' },
     ]);
   }
   function removeOption(idx: number) {
-    setOptions((prev) => prev.filter((_, i) => i !== idx).map((o, i) => ({ ...o, orderIndex: i })));
+    setOptions((prev) => prev.filter((_, i) => i !== idx).map((o, i) => ({ ...o, order_index: i })));
   }
   function updateOption(idx: number, patch: Partial<Option>) {
     setOptions((prev) => prev.map((o, i) => (i === idx ? { ...o, ...patch } : o)));
@@ -497,20 +497,20 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
         tolerance: numericTolerance,
         ...(numericUnit ? { unit: numericUnit } : {}),
         ...(units.length ? { units } : {}),
-        ...(parsedRanges.length ? { scoreRanges: parsedRanges } : {}),
+        ...(parsedRanges.length ? { score_ranges: parsedRanges } : {}),
       };
     }
     if (type === 'algebraic') {
       return { expected: expectedAnswer };
     }
     if (isInlineChoice) {
-      return { inlineBlanks };
+      return { inline_blanks: inlineBlanks };
     }
     if (isHotspot) {
       return { hotspots };
     }
     if (isCategorize) {
-      return { categories, correctMap };
+      return { categories, correct_map: correctMap };
     }
     return null;
   }
@@ -523,11 +523,11 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
       prompt,
       ...(imageUrl ? { image_url: imageUrl } : {}), // Convert to snake_case for backend
       score,
-      order_index: orderIndex, // Convert to snake_case for backend
+      order_index: orderIndex,
       ...(materia ? { materia } : {}),
       ...(topic ? { tema: topic } : {}), // Convert to snake_case for backend
       options: hasOptions || isCategorize ? options : [],
-      metadata_json: buildMetadata(), // Convert to snake_case for backend
+      metadata_json: buildMetadata(),
     };
     onSave(data);
   }
@@ -842,7 +842,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                     onChange={(e) =>
                       updateOption(idx, {
                         label: e.target.value,
-                        value: e.target.value.toLowerCase().replace(/\s+/g, '_'), // value is still snake_case for backend
+                        value: e.target.value.toLowerCase().replace(/\s+/g, '_'),
                       })
                     }
                     onBlur={(e) => updateOption(idx, { label: e.target.value.trim() })} // Trim label on blur
@@ -875,8 +875,8 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 {/* Option image */}
                 <div className="pl-6">
                   <ImageField
-                    value={opt.image_url ?? ''} // Use image_url for internal state
-                    onChange={(url) => updateOption(idx, { image_url: url })} // Use image_url
+                    value={opt.image_url ?? ''}
+                    onChange={(url) => updateOption(idx, { image_url: url })}
                     // No trim/lowercase for URL
                     label="Imagen de opción (opcional)"
                   />
