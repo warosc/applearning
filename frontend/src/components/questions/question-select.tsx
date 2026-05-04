@@ -75,7 +75,7 @@ export function QuestionSelect({ question, answer, onAnswer }: QuestionSelectPro
                 <img
                   src={opt.image_url}
                   alt={opt.label}
-                  className="max-h-40 rounded-lg object-contain border border-gray-100"
+                  className="w-full max-h-48 rounded-lg object-contain bg-gray-50 border border-gray-100"
                 />
               )}
               <span className={`block text-sm leading-relaxed pt-0.5 ${

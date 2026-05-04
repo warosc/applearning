@@ -231,7 +231,7 @@ function HotspotEditor({
           <img
             src={imageUrl}
             alt="Imagen"
-            className="w-full object-contain max-h-[400px] bg-gray-900"
+            className="w-full object-contain max-h-[400px] bg-gray-50"
             draggable={false}
           />
 

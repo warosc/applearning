@@ -69,7 +69,7 @@ export function QuestionImageHotspot({ question, answer, onAnswer }: QuestionIma
 
       {/* Image container — relative so dots are positioned over it */}
       <div
-        className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-900 select-none"
+        className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100 select-none"
         onClick={() => setActiveSpot(null)}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
