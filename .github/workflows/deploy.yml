@@ -87,6 +87,9 @@ jobs:
             sleep 15
             docker compose -f docker-compose.prod.yml ps
 
+            echo "→ Reloading nginx config (picks up any nginx.conf changes)..."
+            docker exec docker-nginx-1 nginx -s reload || docker compose -f docker-compose.prod.yml restart nginx
+
             echo "→ Cleaning unused images..."
             docker image prune -f
 
