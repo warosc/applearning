@@ -3,23 +3,19 @@
 import { CheckCircle2, XCircle, MinusCircle, Trophy, Clock, RotateCcw, TrendingUp } from 'lucide-react';
 
 interface ResultItem {
-  question_id?: string;
   questionId?: string;
   prompt?: string;
   is_correct?: boolean | null;
   isCorrect?: boolean | null;
-  score_obtained?: number | null;
   scoreObtained?: number | null;
-  max_score?: number;
   scorePossible?: number;
-  answer_json?: unknown;
   answerJson?: unknown;
 }
 
 interface MateriaItem {
   materia: string;
-  score_obtained: number;
-  total_score: number;
+  scoreObtained: number;
+  totalScore: number;
   percentage: number;
   correct: number;
   incorrect: number;
@@ -27,23 +23,15 @@ interface MateriaItem {
 }
 
 interface ResultData {
-  // snake_case fields (new API shape)
   correct?: number;
   incorrect?: number;
   omitted?: number;
-  score_obtained?: number;
-  total_score?: number;
+  scoreObtained?: number; // Now always camelCase
+  totalScore?: number; // Now always camelCase
   percentage?: number;
-  time_spent_seconds?: number | null;
-  by_materia?: MateriaItem[];
+  timeSpentSeconds?: number | null; // Now always camelCase
+  byMateria?: MateriaItem[]; // Now always camelCase
   questions?: ResultItem[];
-  // camelCase fields (old API shape)
-  correctCount?: number;
-  incorrectCount?: number;
-  unansweredCount?: number;
-  totalObtained?: number;
-  totalPossible?: number;
-  perQuestion?: ResultItem[];
 }
 
 function fmt(s: number | null | undefined): string {
@@ -62,29 +50,26 @@ function formatAnswer(v: unknown): string {
 interface ResultsViewProps {
   result: unknown;
   onRestart: () => void;
-  // Legacy props — accepted but not required
-  questions?: unknown[];
-  answers?: Record<string, unknown>;
 }
 
 export function ResultsView({ result, onRestart }: ResultsViewProps) {
   const data = result as ResultData | null;
   if (!data) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <p className="text-gray-400">No hay resultados disponibles.</p>
+      <p className="text-gray-400">No hay resultados disponibles. Asegúrate de que el backend esté funcionando y haya datos.</p>
     </div>
   );
 
-  // Normalize both API shapes
-  const correct = data.correct ?? data.correctCount ?? 0;
-  const incorrect = data.incorrect ?? data.incorrectCount ?? 0;
-  const omitted = data.omitted ?? data.unansweredCount ?? 0;
-  const scoreObtained = data.score_obtained ?? data.totalObtained ?? 0;
-  const totalScore = data.total_score ?? data.totalPossible ?? 100;
+  // Now that apiFetch converts, we expect camelCase directly
+  const correct = data.correct ?? 0;
+  const incorrect = data.incorrect ?? 0;
+  const omitted = data.omitted ?? 0;
+  const scoreObtained = data.scoreObtained ?? 0;
+  const totalScore = data.totalScore ?? 100;
   const pct = data.percentage ?? 0;
-  const timeSpent = data.time_spent_seconds ?? null;
-  const byMateria: MateriaItem[] = data.by_materia ?? [];
-  const questionItems: ResultItem[] = data.questions ?? data.perQuestion ?? [];
+  const timeSpent = data.timeSpentSeconds ?? null;
+  const byMateria: MateriaItem[] = data.byMateria ?? [];
+  const questionItems: ResultItem[] = data.questions ?? [];
 
   const passed = pct >= 60;
 
@@ -188,7 +173,7 @@ export function ResultsView({ result, onRestart }: ResultsViewProps) {
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-sm font-medium text-gray-800">{m.materia}</span>
                       <span className="text-sm font-bold text-gray-700">
-                        {m.score_obtained.toFixed(1)}<span className="text-xs text-gray-400 font-normal">/{m.total_score.toFixed(1)} pts</span>
+                        {m.scoreObtained.toFixed(1)}<span className="text-xs text-gray-400 font-normal">/{m.totalScore.toFixed(1)} pts</span>
                         <span className="ml-2 text-xs text-gray-500">{m.percentage.toFixed(0)}%</span>
                       </span>
                     </div>
@@ -219,13 +204,13 @@ export function ResultsView({ result, onRestart }: ResultsViewProps) {
             <div className="divide-y divide-slate-100">
               {questionItems.map((q, i) => {
                 const isCorrect = q.is_correct ?? q.isCorrect ?? null;
-                const score = q.score_obtained ?? q.scoreObtained ?? 0;
-                const maxScore = q.max_score ?? q.scorePossible ?? 0;
-                const answerVal = q.answer_json ?? q.answerJson;
+                const score = q.scoreObtained ?? 0;
+                const maxScore = q.scorePossible ?? 0;
+                const answerVal = q.answerJson;
                 const prompt = q.prompt ?? '';
 
                 return (
-                  <div key={q.question_id ?? q.questionId ?? i} className="flex items-start gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                  <div key={q.questionId ?? i} className="flex items-start gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors">
                     <div className="flex-shrink-0 mt-0.5">
                       {isCorrect === true && <CheckCircle2 className="h-5 w-5 text-green-500" />}
                       {isCorrect === false && <XCircle className="h-5 w-5 text-red-500" />}

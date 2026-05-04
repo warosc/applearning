@@ -3,6 +3,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship
+from app.models.practice import UserSkill, PracticeReview # Asumiendo que UserSkill y PracticeReview están aquí
 
 from app.database import Base
 

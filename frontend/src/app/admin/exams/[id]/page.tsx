@@ -31,17 +31,17 @@ interface Exam {
   id: string;
   title: string;
   description: string;
-  total_score: number;
-  duration_minutes: number;
-  is_published: boolean;
+  totalScore: number;
+  durationMinutes: number;
+  isPublished: boolean;
 }
 
 interface QuestionOption {
   id?: string;
   label: string;
   value: string;
-  is_correct: boolean;
-  order_index: number;
+  isCorrect: boolean;
+  orderIndex: number;
 }
 
 interface Question {
@@ -49,8 +49,8 @@ interface Question {
   type: string;
   prompt: string;
   score: number;
-  order_index: number;
-  metadata_json?: Record<string, unknown> | null;
+  orderIndex: number;
+  metadataJson?: Record<string, unknown> | null;
   options: QuestionOption[];
 }
 
@@ -72,9 +72,10 @@ export default function EditExamPage() {
   useEffect(() => {
     Promise.all([fetchExam(id), fetchExamQuestions(id), fetchFormTemplate(id).catch(() => null)])
       .then(([e, q, tmpl]) => {
+        const formTemplate = tmpl as { schema_json?: { fields?: FormField[] }; schemaJson?: { fields?: FormField[] } } | null;
         setExam(e);
         setQuestions(q);
-        setFormFields(tmpl?.schema_json?.fields ?? tmpl?.schemaJson?.fields ?? []);
+        setFormFields(formTemplate?.schema_json?.fields ?? formTemplate?.schemaJson?.fields ?? []);
       })
       .catch(() => setError('Error al cargar examen'))
       .finally(() => setLoading(false));
@@ -177,7 +178,7 @@ export default function EditExamPage() {
 
         <div className="space-y-3">
           {questions
-            .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+            .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0))
             .map((q, idx) => (
               <div key={q.id}>
                 {editingQuestion?.id === q.id ? (

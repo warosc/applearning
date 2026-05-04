@@ -6,11 +6,8 @@ import { useState } from 'react';
 interface ExamData {
   title?: string;
   description?: string;
-  total_score?: number;
   totalScore?: number;
-  duration_minutes?: number;
   durationMinutes?: number;
-  is_published?: boolean;
   isPublished?: boolean;
 }
 
@@ -24,14 +21,9 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
   const [totalScore, setTotalScore] = useState(
-    initialData?.total_score ?? initialData?.totalScore ?? 100
-  );
-  const [durationMinutes, setDurationMinutes] = useState(
-    initialData?.duration_minutes ?? initialData?.durationMinutes ?? 60
-  );
-  const [isPublished, setIsPublished] = useState(
-    initialData?.is_published ?? initialData?.isPublished ?? false
-  );
+    initialData?.totalScore ?? 100);
+  const [durationMinutes, setDurationMinutes] = useState(initialData?.durationMinutes ?? 60);
+  const [isPublished, setIsPublished] = useState(initialData?.isPublished ?? false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,9 +31,9 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
     onSave({
       title,
       description,
-      total_score: totalScore,
-      duration_minutes: durationMinutes,
-      is_published: isPublished,
+      totalScore,
+      durationMinutes,
+      isPublished,
     });
   }
 

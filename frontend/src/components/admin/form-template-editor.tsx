@@ -36,7 +36,7 @@ function newField(): FormField {
 }
 
 export function FormTemplateEditor({ initialFields, onSave, saving }: Props) {
-  const [fields, setFields] = useState<FormField[]>(initialFields);
+  const [fields, setFields] = useState<FormField[]>(initialFields ?? []);
 
   function addField() {
     setFields((prev) => [...prev, newField()]);

@@ -11,7 +11,7 @@ function isAnswered(value: unknown): boolean {
 
 export function QuestionPanel() {
   const { questions, currentQuestionIndex, answers, markedForReview, setCurrentQuestion } =
-    useSimulatorStore();
+    useSimulatorStore(); // No changes needed here, as answers and markedForReview are already camelCase in store
 
   if (questions.length === 0) return null;
 

@@ -1,10 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useSimulatorStore } from '@/store/simulator-store';
 
 type CalcOp = '+' | '-' | '×' | '÷' | 'xʸ' | null;
 
 const DEG = Math.PI / 180;
+
+// Helper to get store state and actions
+const useCalcStore = () => useSimulatorStore(state => ({
+  display: state.calculatorDisplay,
+  prev: state.calculatorPrev,
+  op: state.calculatorOp,
+  fresh: state.calculatorFresh,
+  angleMode: state.calculatorAngleMode,
+  setDisplay: state.setCalculatorDisplay, setPrev: state.setCalculatorPrev, setOp: state.setCalculatorOp, setFresh: state.setCalculatorFresh, setAngleMode: state.setCalculatorAngleMode,
+}));
 
 function fmt(n: number): string {
   if (!isFinite(n)) return 'Error';
@@ -12,11 +22,7 @@ function fmt(n: number): string {
 }
 
 export function Calculator() {
-  const [display, setDisplay] = useState('0');
-  const [prev, setPrev] = useState<string | null>(null);
-  const [op, setOp] = useState<CalcOp>(null);
-  const [fresh, setFresh] = useState(false);
-  const [angleMode, setAngleMode] = useState<'deg' | 'rad'>('deg');
+  const { display, prev, op, fresh, angleMode, setDisplay, setPrev, setOp, setFresh, setAngleMode } = useCalcStore();
 
   function input(v: string) {
     if (fresh) { setDisplay(v === '.' ? '0.' : v); setFresh(false); return; }
@@ -100,7 +106,7 @@ export function Calculator() {
         {/* Angle mode toggle */}
         <div className="flex justify-end mt-1">
           <button
-            onClick={() => setAngleMode(m => m === 'deg' ? 'rad' : 'deg')}
+            onClick={() => setAngleMode(angleMode === 'deg' ? 'rad' : 'deg')}
             className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors"
           >
             {angleMode.toUpperCase()}

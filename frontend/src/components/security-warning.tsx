@@ -7,7 +7,7 @@ interface SecurityWarningProps {
   message: string;
 }
 
-export function SecurityWarning({ visible, message }: SecurityWarningProps) {
+export function SecurityWarning({ visible, message }: SecurityWarningProps) { // No changes needed here, it's already functional
   if (!visible) return null;
   return (
     <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-2 duration-200">

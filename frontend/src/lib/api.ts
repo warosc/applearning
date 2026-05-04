@@ -1,9 +1,18 @@
 // Empty string means same-origin (Nginx proxies /api/ to backend).
+import { snakeToCamel, camelToSnake } from './case-converter';
 // 'http://localhost:4000' is the dev fallback when no build arg is provided.
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 function authHeaders(token: string): Record<string, string> {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+}
+
+function jsonBody(data: unknown): string {
+  return JSON.stringify(camelToSnake(data));
+}
+
+async function jsonResponse<T = any>(res: Response): Promise<T> {
+  return snakeToCamel(await res.json()) as T;
 }
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -21,29 +30,29 @@ export async function login(username: string, password: string) {
 export async function fetchMe(token: string) {
   const res = await fetch(`${API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
   if (!res.ok) throw new Error('No autenticado');
-  return res.json();
+  return jsonResponse(res);
 }
 
 // ─── Admin: Exams ─────────────────────────────────────────────────────────────
 
 export async function adminCreateExam(token: string, data: object) {
-  const res = await fetch(`${API_URL}/api/exams`, {
+  const res = await fetch(`${API_URL}/api/exams/`, {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify(data),
+    body: jsonBody(data),
   });
   if (!res.ok) throw new Error('Error al crear examen');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function adminUpdateExam(token: string, id: string, data: object) {
   const res = await fetch(`${API_URL}/api/exams/${id}`, {
     method: 'PUT',
     headers: authHeaders(token),
-    body: JSON.stringify(data),
+    body: jsonBody(data),
   });
   if (!res.ok) throw new Error('Error al actualizar examen');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function adminDeleteExam(token: string, id: string) {
@@ -59,27 +68,27 @@ export async function adminDeleteExam(token: string, id: string) {
 export async function fetchExamQuestions(examId: string) {
   const res = await fetch(`${API_URL}/api/exams/${examId}/questions`);
   if (!res.ok) throw new Error('Error al cargar preguntas');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function adminCreateQuestion(token: string, data: object) {
-  const res = await fetch(`${API_URL}/api/questions`, {
+  const res = await fetch(`${API_URL}/api/questions/`, {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify(data),
+    body: jsonBody(data),
   });
   if (!res.ok) throw new Error('Error al crear pregunta');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function adminUpdateQuestion(token: string, id: string, data: object) {
   const res = await fetch(`${API_URL}/api/questions/${id}`, {
     method: 'PUT',
     headers: authHeaders(token),
-    body: JSON.stringify(data),
+    body: jsonBody(data),
   });
   if (!res.ok) throw new Error('Error al actualizar pregunta');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function adminDeleteQuestion(token: string, id: string) {
@@ -92,26 +101,44 @@ export async function adminDeleteQuestion(token: string, id: string) {
 
 // ─── Admin: Form Template ─────────────────────────────────────────────────────
 
-export async function adminUpdateFormTemplate(token: string, examId: string, data: object) {
+type FormTemplatePayload = {
+  title?: string;
+  schema_json: {
+    fields?: unknown[];
+    [key: string]: unknown;
+  };
+};
+
+type FormTemplateResponse = {
+  id: string;
+  exam_id: string;
+  title: string;
+  schema_json: {
+    fields?: unknown[];
+    [key: string]: unknown;
+  };
+};
+
+export async function adminUpdateFormTemplate(token: string, examId: string, data: FormTemplatePayload) {
   const res = await fetch(`${API_URL}/api/exams/${examId}/form-template`, {
     method: 'PUT',
     headers: authHeaders(token),
-    body: JSON.stringify(data),
+    body: jsonBody(data),
   });
   if (!res.ok) throw new Error('Error al actualizar formulario');
-  return res.json();
+  return jsonResponse<FormTemplateResponse>(res);
 }
 
 export async function fetchExams() {
-  const res = await fetch(`${API_URL}/api/exams`);
+  const res = await fetch(`${API_URL}/api/exams/`);
   if (!res.ok) throw new Error('Error al cargar exámenes');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function fetchExam(id: string) {
   const res = await fetch(`${API_URL}/api/exams/${id}`);
   if (!res.ok) throw new Error('Error al cargar examen');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function startAttempt(examId: string) {
@@ -120,23 +147,23 @@ export async function startAttempt(examId: string) {
     headers: { 'Content-Type': 'application/json' },
   });
   if (!res.ok) throw new Error('Error al iniciar examen');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function fetchAttempt(id: string) {
   const res = await fetch(`${API_URL}/api/attempts/${id}`);
   if (!res.ok) throw new Error('Error al cargar intento');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function saveAnswer(attemptId: string, questionId: string, answerJson: unknown) {
   const res = await fetch(`${API_URL}/api/attempts/${attemptId}/answer`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question_id: questionId, answer_json: answerJson }),
+    body: jsonBody({ questionId, answerJson }),
   });
   if (!res.ok) throw new Error('Error al guardar respuesta');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function submitAttempt(attemptId: string) {
@@ -145,39 +172,39 @@ export async function submitAttempt(attemptId: string) {
     headers: { 'Content-Type': 'application/json' },
   });
   if (!res.ok) throw new Error('Error al enviar examen');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function fetchResult(attemptId: string) {
   const res = await fetch(`${API_URL}/api/attempts/${attemptId}/result`);
   if (!res.ok) throw new Error('Error al cargar resultados');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function submitForm(attemptId: string, payload: Record<string, unknown>) {
   const res = await fetch(`${API_URL}/api/attempts/${attemptId}/form-submit`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ payload_json: payload }),
+    body: JSON.stringify({ payload_json: payload }), // Ya estaba bien, solo para confirmar
   });
   if (!res.ok) throw new Error('Error al guardar formulario');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function fetchFormTemplate(examId: string) {
   const res = await fetch(`${API_URL}/api/exams/${examId}/form-template`);
   if (!res.ok) throw new Error('Error al cargar plantilla');
-  return res.json();
+  return jsonResponse<FormTemplateResponse>(res);
 }
 
 export async function markForReview(attemptId: string, questionId: string, marked: boolean) {
   const res = await fetch(`${API_URL}/api/attempts/${attemptId}/mark-review`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question_id: questionId, marked }),
+    body: jsonBody({ questionId, marked }),
   });
   if (!res.ok) throw new Error('Error al marcar pregunta');
-  return res.json();
+  return jsonResponse(res);
 }
 
 export async function logSecurityEvent(attemptId: string, eventType: string, details?: Record<string, unknown>) {
@@ -269,7 +296,7 @@ export async function adminDuplicateQuestion(token: string, questionId: string) 
 
 // Admin: Bank questions (exam_id=null)
 export async function fetchBankQuestions(token: string) {
-  const res = await fetch(`${API_URL}/api/questions?bank=true`, { headers: authHeaders(token) });
+  const res = await fetch(`${API_URL}/api/questions/?bank=true`, { headers: authHeaders(token) });
   if (!res.ok) throw new Error('Error al cargar banco');
   return res.json();
 }
@@ -280,7 +307,7 @@ export async function fetchAdminQuestions(token: string, params?: { materia?: st
   if (params?.materia) q.set('materia', params.materia);
   if (params?.difficulty) q.set('difficulty', params.difficulty);
   if (params?.bank) q.set('bank', 'true');
-  const res = await fetch(`${API_URL}/api/questions?${q}`, { headers: authHeaders(token) });
+  const res = await fetch(`${API_URL}/api/questions/?${q}`, { headers: authHeaders(token) });
   if (!res.ok) throw new Error('Error al cargar preguntas');
   return res.json();
 }

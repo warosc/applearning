@@ -126,6 +126,7 @@ def create_question(
             is_correct=opt.is_correct,
             weight=getattr(opt, 'weight', 0.0) or 0.0,
             order_index=opt.order_index if opt.order_index is not None else idx,
+            image_url=opt.image_url,
         )
         db.add(option)
 
@@ -165,6 +166,7 @@ def update_question(
                 is_correct=opt.get("is_correct", False),
                 weight=opt.get("weight", 0.0) or 0.0,
                 order_index=opt.get("order_index", idx),
+                image_url=opt.get("image_url"),
             )
             db.add(option)
 
@@ -264,6 +266,7 @@ def duplicate_question(
             is_correct=orig_opt.is_correct,
             weight=orig_opt.weight,
             order_index=orig_opt.order_index,
+            image_url=orig_opt.image_url,
         )
         db.add(new_opt)
 
