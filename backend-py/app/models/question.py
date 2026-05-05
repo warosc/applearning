@@ -34,7 +34,7 @@ class Question(Base):
         lazy="select",
         order_by="QuestionOption.order_index",
     )
-    answers = relationship("Answer", back_populates="question", lazy="select")
+    answers = relationship("Answer", back_populates="question", lazy="select", passive_deletes=True)
 
 
 class QuestionOption(Base):

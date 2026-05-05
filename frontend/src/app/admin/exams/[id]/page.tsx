@@ -96,8 +96,12 @@ export default function EditExamPage() {
 
   async function handleDeleteQuestion(qid: string) {
     if (!confirm('¿Eliminar pregunta?')) return;
-    await adminDeleteQuestion(token, qid);
-    setQuestions((prev) => prev.filter((q) => q.id !== qid));
+    try {
+      await adminDeleteQuestion(token, qid);
+      setQuestions((prev) => prev.filter((q) => q.id !== qid));
+    } catch (e) {
+      setError('No se pudo eliminar la pregunta: ' + (e as Error).message);
+    }
   }
 
   async function handleSaveFormTemplate(fields: FormField[]) {

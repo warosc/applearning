@@ -142,7 +142,7 @@ function ImageField({ value, onChange, label = 'Imagen' }: { value: string; onCh
       <label className="block text-xs font-medium text-gray-600">{label}</label>
       <div className="flex gap-2 items-center">
         <input
-          type="url"
+          type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="https://... o sube un archivo"
