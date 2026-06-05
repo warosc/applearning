@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Any
 from datetime import datetime
 
@@ -45,7 +45,7 @@ class QuestionBase(BaseModel):
     difficulty: str = "medio"
     order_index: int = 0
     image_url: Optional[str] = None
-    score: float = 1.0
+    score: float = Field(default=1.0, gt=0)
     metadata_json: Optional[Any] = None
 
 
@@ -64,7 +64,7 @@ class UpdateQuestionSchema(BaseModel):
     difficulty: Optional[str] = None
     order_index: Optional[int] = None
     image_url: Optional[str] = None
-    score: Optional[float] = None
+    score: Optional[float] = Field(default=None, gt=0)
     metadata_json: Optional[Any] = None
     exam_id: Optional[str] = None
     section_id: Optional[str] = None

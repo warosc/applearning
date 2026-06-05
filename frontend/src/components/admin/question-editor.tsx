@@ -517,6 +517,10 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!score || score <= 0) {
+      alert('El puntaje debe ser mayor que 0.');
+      return;
+    }
     const data: QuestionData = {
       ...(init?.id ? { id: init.id as string } : {}),
       type,
@@ -590,6 +594,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 value={score}
                 onChange={(e) => setScore(Number(e.target.value))}
                 min={0}
+                step="any"
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               />
             </div>

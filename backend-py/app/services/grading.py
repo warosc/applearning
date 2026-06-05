@@ -48,57 +48,72 @@ def grade_answer(question, answer_json: Any) -> tuple[Optional[bool], float]:
         return is_correct, question.score if is_correct else 0.0
 
     elif question.type == "numeric":
+        meta = question.metadata_json if isinstance(question.metadata_json, dict) else {}
+        # Correct value: prefer metadata_json.expected (set by the admin editor);
+        # fall back to a correct option's value (imported/legacy questions).
         correct_option = next((opt for opt in options if opt.is_correct), None)
-        if correct_option is None:
-            return False, 0.0
+        expected_raw = meta.get("expected")
+        if expected_raw in (None, ""):
+            expected_raw = correct_option.value if correct_option else None
+
+        # Parse the student's answer (accept plain number or {"value", "unit"} from the unit selector)
         try:
-            correct_val = float(correct_option.value)
-            # Accept plain number or {"value": ..., "unit": ...} from unit-selector UI
             raw = answer_json
             if isinstance(raw, dict):
                 raw = raw.get("value", raw)
             answer_val = float(raw)
-            meta = question.metadata_json
-            if not isinstance(meta, dict):
-                meta = {}
-
-            # ── Score ranges (partial credit by range) ──────────────────────
-            # score_ranges: [{min, max, fraction}] — checked in order, first match wins.
-            # fraction 1.0 = full score, 0.5 = half, etc.
-            score_ranges = meta.get("score_ranges", [])
-            if score_ranges and isinstance(score_ranges, list):
-                for sr in score_ranges:
-                    try:
-                        lo = float(sr.get("min", float("-inf")))
-                        hi = float(sr.get("max", float("inf")))
-                        fraction = float(sr.get("fraction", 0.0))
-                        if lo <= answer_val <= hi:
-                            score_obtained = round(question.score * fraction, 4)
-                            is_correct = fraction >= 1.0
-                            return is_correct, score_obtained
-                    except (TypeError, ValueError):
-                        continue
-                # No range matched → 0
-                return False, 0.0
-
-            # ── Simple comparison (fallback when no score_ranges) ────────────
-            comparison = meta.get("comparison", "range")
-            tolerance = float(meta.get("tolerance", 0.001))
-            if comparison == "greater_than":
-                is_correct = answer_val > correct_val
-            elif comparison == "less_than":
-                is_correct = answer_val < correct_val
-            else:  # "range" or "exact"
-                is_correct = abs(answer_val - correct_val) <= tolerance
-            return is_correct, question.score if is_correct else 0.0
         except (TypeError, ValueError):
             return False, 0.0
 
-    elif question.type == "algebraic":
-        correct_option = next((opt for opt in options if opt.is_correct), None)
-        if correct_option is None:
+        # ── Score ranges (partial credit by range) — don't require an expected value ──
+        # score_ranges: [{min, max, fraction}] — checked in order, first match wins.
+        # fraction 1.0 = full score, 0.5 = half, etc.
+        score_ranges = meta.get("score_ranges", [])
+        if score_ranges and isinstance(score_ranges, list):
+            for sr in score_ranges:
+                try:
+                    lo = float(sr.get("min", float("-inf")))
+                    hi = float(sr.get("max", float("inf")))
+                    fraction = float(sr.get("fraction", 0.0))
+                    if lo <= answer_val <= hi:
+                        score_obtained = round(question.score * fraction, 4)
+                        is_correct = fraction >= 1.0
+                        return is_correct, score_obtained
+                except (TypeError, ValueError):
+                    continue
+            # No range matched → 0
             return False, 0.0
-        is_correct = normalize_algebraic(str(answer_json)) == normalize_algebraic(correct_option.value)
+
+        # ── Simple comparison (fallback when no score_ranges) — needs the expected value ──
+        if expected_raw in (None, ""):
+            return False, 0.0
+        try:
+            correct_val = float(expected_raw)
+        except (TypeError, ValueError):
+            return False, 0.0
+        comparison = meta.get("comparison", "range")
+        try:
+            tolerance = float(meta.get("tolerance", 0.001))
+        except (TypeError, ValueError):
+            tolerance = 0.001
+        if comparison == "greater_than":
+            is_correct = answer_val > correct_val
+        elif comparison == "less_than":
+            is_correct = answer_val < correct_val
+        else:  # "range" or "exact"
+            is_correct = abs(answer_val - correct_val) <= tolerance
+        return is_correct, question.score if is_correct else 0.0
+
+    elif question.type == "algebraic":
+        meta = question.metadata_json if isinstance(question.metadata_json, dict) else {}
+        # Correct value: prefer metadata_json.expected; fall back to a correct option.
+        correct_option = next((opt for opt in options if opt.is_correct), None)
+        expected_raw = meta.get("expected")
+        if expected_raw in (None, ""):
+            expected_raw = correct_option.value if correct_option else None
+        if expected_raw in (None, ""):
+            return False, 0.0
+        is_correct = normalize_algebraic(str(answer_json)) == normalize_algebraic(str(expected_raw))
         return is_correct, question.score if is_correct else 0.0
 
     elif question.type == "drag_drop":

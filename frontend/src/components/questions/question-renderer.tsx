@@ -47,6 +47,9 @@ export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendere
   // key may be metadataJson rather than metadata_json — provide a fallback.
   const normalizedQuestion = {
     ...question,
+    // image_url is camelCased to imageUrl by the API converter — restore the snake_case
+    // key so type-specific renderers (e.g. image_hotspot) that read image_url find it.
+    image_url: question.image_url ?? (question as Record<string, unknown>).imageUrl as string | null ?? null,
     metadata_json: question.metadata_json ?? (question as Record<string, unknown>).metadataJson as Record<string, unknown> | null ?? null,
     options: (question.options ?? []).map((o) => ({
       id: o.id ?? o.value,

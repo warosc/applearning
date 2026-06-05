@@ -127,6 +127,13 @@ function computeExpiresAt(startedAt: string | null | undefined, durationMinutes:
   return new Date(ms + durationMinutes * 60 * 1000).toISOString();
 }
 
+// Defense-in-depth: keep questions in the admin-defined order even if the API
+// returns them unsorted. orderIndex is camelCase (snakeToCamel converts order_index).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function sortByOrder(questions: any[] | undefined | null): any[] {
+  return [...(questions ?? [])].sort((a, b) => (a?.orderIndex ?? 0) - (b?.orderIndex ?? 0));
+}
+
 // ─── Main component ───────────────────────────────────────────────
 export function ExamenClient() {
   const searchParams = useSearchParams();
@@ -223,7 +230,7 @@ export function ExamenClient() {
               totalScore: examData?.totalScore ?? 100,
               calculatorEnabled: examData?.calculatorEnabled ?? true,
               expiresAt: computeExpiresAt(a.startedAt, dur),
-              questions: examData?.questions ?? [],
+              questions: sortByOrder(examData?.questions),
               answers: answersMap,
               status: a.status,
             });
@@ -247,7 +254,7 @@ export function ExamenClient() {
               totalScore: examData?.totalScore ?? 100,
               calculatorEnabled: examData?.calculatorEnabled ?? true,
               expiresAt: computeExpiresAt(a.startedAt, dur),
-              questions: examData?.questions ?? [],
+              questions: sortByOrder(examData?.questions),
               answers: answersMap,
               markedForReview: markedIds,
               status: a.status,

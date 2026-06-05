@@ -5,11 +5,12 @@ from app.services.grading import grade_answer, calculate_total
 
 
 # Create mock question objects for testing
-def make_question(q_type, score=10.0, options=None):
+def make_question(q_type, score=10.0, options=None, metadata_json=None):
     q = MagicMock()
     q.type = q_type
     q.score = score
     q.options = options or []
+    q.metadata_json = metadata_json
     return q
 
 
@@ -81,3 +82,58 @@ class TestGradeAnswer:
         q = make_question("algebraic", score=5.0, options=opts)
         is_correct, score = grade_answer(q, "X+1")
         assert is_correct is True
+
+    # ── Editor-created math: correct answer lives in metadata_json.expected, no options ──
+
+    def test_numeric_expected_from_metadata_correct(self):
+        # No options — the editor stores the answer in metadata_json.expected.
+        q = make_question("numeric", score=5.0, options=[], metadata_json={"expected": "12"})
+        is_correct, score = grade_answer(q, "12")
+        assert is_correct is True
+        assert score == 5.0
+
+    def test_numeric_expected_from_metadata_wrong(self):
+        q = make_question("numeric", score=5.0, options=[], metadata_json={"expected": "12"})
+        is_correct, score = grade_answer(q, "15")
+        assert is_correct is False
+        assert score == 0.0
+
+    def test_numeric_metadata_unit_wrapped_answer(self):
+        # Unit-selector UI sends {"value": ..., "unit": ...}
+        q = make_question("numeric", score=4.0, options=[], metadata_json={"expected": "9.8"})
+        is_correct, score = grade_answer(q, {"value": "9.8", "unit": "m/s²"})
+        assert is_correct is True
+        assert score == 4.0
+
+    def test_numeric_score_ranges_partial(self):
+        meta = {"score_ranges": [{"min": 10, "max": 20, "fraction": 0.5}]}
+        q = make_question("numeric", score=10.0, options=[], metadata_json=meta)
+        is_correct, score = grade_answer(q, "15")
+        assert is_correct is False  # fraction < 1.0
+        assert score == 5.0
+
+    def test_numeric_score_ranges_full(self):
+        meta = {"score_ranges": [{"min": 10, "max": 20, "fraction": 1.0}]}
+        q = make_question("numeric", score=10.0, options=[], metadata_json=meta)
+        is_correct, score = grade_answer(q, "15")
+        assert is_correct is True
+        assert score == 10.0
+
+    def test_numeric_score_ranges_no_match(self):
+        meta = {"score_ranges": [{"min": 10, "max": 20, "fraction": 1.0}]}
+        q = make_question("numeric", score=10.0, options=[], metadata_json=meta)
+        is_correct, score = grade_answer(q, "99")
+        assert is_correct is False
+        assert score == 0.0
+
+    def test_numeric_no_options_no_metadata_returns_zero(self):
+        q = make_question("numeric", score=5.0, options=[], metadata_json=None)
+        is_correct, score = grade_answer(q, "12")
+        assert is_correct is False
+        assert score == 0.0
+
+    def test_algebraic_expected_from_metadata(self):
+        q = make_question("algebraic", score=5.0, options=[], metadata_json={"expected": "x+1"})
+        is_correct, score = grade_answer(q, "X + 1")
+        assert is_correct is True
+        assert score == 5.0

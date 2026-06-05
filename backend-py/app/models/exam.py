@@ -22,7 +22,7 @@ class Exam(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     sections = relationship("ExamSection", back_populates="exam", cascade="all, delete-orphan", lazy="select", order_by="ExamSection.order_index")
-    questions = relationship("Question", back_populates="exam", cascade="all, delete-orphan", lazy="select")
+    questions = relationship("Question", back_populates="exam", cascade="all, delete-orphan", lazy="select", order_by="Question.order_index")
     attempts = relationship("ExamAttempt", back_populates="exam", cascade="all, delete-orphan", lazy="select")
     form_template = relationship("FormTemplate", back_populates="exam", uselist=False, cascade="all, delete-orphan", lazy="select")
 

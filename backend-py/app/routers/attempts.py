@@ -248,7 +248,12 @@ def get_result(attempt_id: str, db: Session = Depends(get_db)):
 
     exam = attempt.exam
     answers_map = {a.question_id: a for a in attempt.answers}
-    questions = db.query(Question).filter(Question.exam_id == exam.id).all()
+    questions = (
+        db.query(Question)
+        .filter(Question.exam_id == exam.id)
+        .order_by(Question.order_index)
+        .all()
+    )
     questions_map = {q.id: q for q in questions}
 
     summary = get_result_summary(exam, attempt.answers, questions_map)
