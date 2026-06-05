@@ -50,6 +50,7 @@ interface Question {
   prompt: string;
   score: number;
   orderIndex: number;
+  createdAt?: string;
   metadataJson?: Record<string, unknown> | null;
   options: QuestionOption[];
 }
@@ -182,7 +183,10 @@ export default function EditExamPage() {
 
         <div className="space-y-3">
           {questions
-            .sort((a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0))
+            .sort((a, b) =>
+              (a.orderIndex ?? 0) - (b.orderIndex ?? 0)
+              || String(a.createdAt ?? '').localeCompare(String(b.createdAt ?? ''))
+            )
             .map((q, idx) => (
               <div key={q.id}>
                 {editingQuestion?.id === q.id ? (

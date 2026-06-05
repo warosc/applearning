@@ -251,7 +251,7 @@ def get_result(attempt_id: str, db: Session = Depends(get_db)):
     questions = (
         db.query(Question)
         .filter(Question.exam_id == exam.id)
-        .order_by(Question.order_index)
+        .order_by(Question.order_index, Question.created_at)
         .all()
     )
     questions_map = {q.id: q for q in questions}

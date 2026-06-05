@@ -69,7 +69,7 @@ def list_questions(
         query = query.filter(Question.exam_id == exam_id)
     if bank_only:
         query = query.filter(Question.exam_id.is_(None))
-    query = query.order_by(Question.order_index)
+    query = query.order_by(Question.order_index, Question.created_at)
     if page_size is not None:
         total = query.count()
         pages = math.ceil(total / page_size) if page_size > 0 else 1

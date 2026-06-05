@@ -129,9 +129,14 @@ function computeExpiresAt(startedAt: string | null | undefined, durationMinutes:
 
 // Defense-in-depth: keep questions in the admin-defined order even if the API
 // returns them unsorted. orderIndex is camelCase (snakeToCamel converts order_index).
+// Tiebreak by createdAt so manually-built exams (all orderIndex = 0) still show in a
+// stable creation order — matching the admin view.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function sortByOrder(questions: any[] | undefined | null): any[] {
-  return [...(questions ?? [])].sort((a, b) => (a?.orderIndex ?? 0) - (b?.orderIndex ?? 0));
+  return [...(questions ?? [])].sort((a, b) =>
+    (a?.orderIndex ?? 0) - (b?.orderIndex ?? 0)
+    || String(a?.createdAt ?? '').localeCompare(String(b?.createdAt ?? ''))
+  );
 }
 
 // ─── Main component ───────────────────────────────────────────────

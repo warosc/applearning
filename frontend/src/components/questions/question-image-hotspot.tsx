@@ -84,6 +84,9 @@ export function QuestionImageHotspot({ question, answer, onAnswer }: QuestionIma
         {hotspots.map((spot) => {
           const sel = current[String(spot.id)];
           const isActive = activeSpot === spot.id;
+          // Dots in the lower part of the image open their dropdown upward so it
+          // doesn't overflow below the image / require scrolling.
+          const openUp = spot.y > 55;
 
           return (
             <div
@@ -117,7 +120,7 @@ export function QuestionImageHotspot({ question, answer, onAnswer }: QuestionIma
                 <div
                   className="absolute z-20 bg-white rounded-xl shadow-2xl border border-gray-200 min-w-[160px] overflow-hidden"
                   style={{
-                    top: '110%',
+                    ...(openUp ? { bottom: '110%' } : { top: '110%' }),
                     left: '50%',
                     transform: 'translateX(-50%)',
                   }}

@@ -34,7 +34,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    # Cache-only (allkeys-lru). Disable RDB/AOF persistence so a corrupt dump.rdb
+    # can never crash-loop redis and block deploys (backend depends on redis health).
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --save "" --appendonly no
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
