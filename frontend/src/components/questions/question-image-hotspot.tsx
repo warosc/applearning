@@ -69,14 +69,14 @@ export function QuestionImageHotspot({ question, answer, onAnswer }: QuestionIma
 
       {/* Image container — relative so dots are positioned over it */}
       <div
-        className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100 select-none"
+        className="relative rounded-xl border border-gray-200 bg-gray-100 select-none"
         onClick={() => setActiveSpot(null)}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageUrl}
           alt="Imagen de la pregunta"
-          className="w-full object-contain max-h-[480px]"
+          className="w-full object-contain max-h-[480px] rounded-xl"
           draggable={false}
         />
 
@@ -84,9 +84,9 @@ export function QuestionImageHotspot({ question, answer, onAnswer }: QuestionIma
         {hotspots.map((spot) => {
           const sel = current[String(spot.id)];
           const isActive = activeSpot === spot.id;
-          // Dots in the lower part of the image open their dropdown upward so it
+          // Dots in the lower half open their dropdown upward so a long list
           // doesn't overflow below the image / require scrolling.
-          const openUp = spot.y > 55;
+          const openUp = spot.y >= 50;
 
           return (
             <div
@@ -118,7 +118,7 @@ export function QuestionImageHotspot({ question, answer, onAnswer }: QuestionIma
               {/* Dropdown popup */}
               {isActive && (
                 <div
-                  className="absolute z-20 bg-white rounded-xl shadow-2xl border border-gray-200 min-w-[160px] overflow-hidden"
+                  className="absolute z-20 bg-white rounded-xl shadow-2xl border border-gray-200 min-w-[160px] max-h-52 overflow-y-auto"
                   style={{
                     ...(openUp ? { bottom: '110%' } : { top: '110%' }),
                     left: '50%',

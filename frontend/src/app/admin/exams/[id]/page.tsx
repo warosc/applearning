@@ -12,6 +12,7 @@ import {
   adminUpdateQuestion,
   adminUpdateFormTemplate,
   fetchFormTemplate,
+  reorderQuestions,
 } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import { ExamForm } from '@/components/admin/exam-form';
@@ -69,6 +70,8 @@ export default function EditExamPage() {
   const [error, setError] = useState('');
   const [addingQuestion, setAddingQuestion] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all([fetchExam(id), fetchExamQuestions(id), fetchFormTemplate(id).catch(() => null)])
@@ -116,6 +119,38 @@ export default function EditExamPage() {
     } finally {
       setSavingForm(false);
     }
+  }
+
+  // Questions in display order: by orderIndex, then createdAt as a stable tiebreak.
+  const orderedQuestions = [...questions].sort(
+    (a, b) =>
+      (a.orderIndex ?? 0) - (b.orderIndex ?? 0)
+      || String(a.createdAt ?? '').localeCompare(String(b.createdAt ?? ''))
+  );
+
+  // Persist a new arrangement: renumber 1..N and save to the backend.
+  async function persistOrder(newOrder: Question[]) {
+    const renumbered = newOrder.map((q, i) => ({ ...q, orderIndex: i + 1 }));
+    setQuestions(renumbered);
+    try {
+      await reorderQuestions(
+        token,
+        renumbered.map((q, i) => ({ question_id: q.id, order_index: i + 1 })),
+      );
+    } catch (e) {
+      setError('No se pudo guardar el orden: ' + (e as Error).message);
+    }
+  }
+
+  function handleDropOn(toIdx: number) {
+    const from = dragIndex;
+    setDragIndex(null);
+    setDragOverIndex(null);
+    if (from === null || from === toIdx) return;
+    const arr = [...orderedQuestions];
+    const [moved] = arr.splice(from, 1);
+    arr.splice(toIdx, 0, moved);
+    persistOrder(arr);
   }
 
   async function handleSaveQuestion(data: object & { id?: string }) {
@@ -181,14 +216,17 @@ export default function EditExamPage() {
           <p className="text-gray-500 text-sm">No hay preguntas aún.</p>
         )}
 
+        {questions.length > 1 && (
+          <p className="text-xs text-gray-400 mb-2">Arrastra ⠿ para reordenar las preguntas. El orden se guarda y se usa en el examen.</p>
+        )}
         <div className="space-y-3">
-          {questions
-            .sort((a, b) =>
-              (a.orderIndex ?? 0) - (b.orderIndex ?? 0)
-              || String(a.createdAt ?? '').localeCompare(String(b.createdAt ?? ''))
-            )
-            .map((q, idx) => (
-              <div key={q.id}>
+          {orderedQuestions.map((q, idx) => (
+              <div
+                key={q.id}
+                onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); setDragOverIndex(idx); } }}
+                onDrop={() => handleDropOn(idx)}
+                className={dragOverIndex === idx && dragIndex !== idx ? 'border-t-2 border-blue-400' : ''}
+              >
                 {editingQuestion?.id === q.id ? (
                   <QuestionEditor
                     examId={id}
@@ -197,7 +235,16 @@ export default function EditExamPage() {
                     onCancel={() => setEditingQuestion(null)}
                   />
                 ) : (
-                  <div className="flex items-start gap-3 border border-gray-100 rounded-lg px-4 py-3 bg-gray-50">
+                  <div className={`flex items-start gap-3 border border-gray-100 rounded-lg px-4 py-3 bg-gray-50 ${dragIndex === idx ? 'opacity-40' : ''}`}>
+                    <span
+                      draggable
+                      onDragStart={() => setDragIndex(idx)}
+                      onDragEnd={() => { setDragIndex(null); setDragOverIndex(null); }}
+                      title="Arrastrar para reordenar"
+                      className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing select-none mt-0.5"
+                    >
+                      ⠿
+                    </span>
                     <span className="text-xs font-mono bg-gray-200 text-gray-600 px-2 py-0.5 rounded mt-0.5">
                       {idx + 1}
                     </span>

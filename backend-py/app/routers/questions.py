@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Body
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, require_admin
@@ -98,6 +99,17 @@ def create_question(
     db: Session = Depends(get_db),
     _: User = Depends(require_admin),
 ):
+    # Auto-append: if no explicit order was given (default 0), place the new
+    # question at the end of its exam so it doesn't jump to the front.
+    order_index = body.order_index
+    if not order_index and body.exam_id:
+        max_oi = (
+            db.query(func.max(Question.order_index))
+            .filter(Question.exam_id == body.exam_id)
+            .scalar()
+        )
+        order_index = (max_oi or 0) + 1
+
     q = Question(
         id=str(uuid.uuid4()),
         type=body.type,
@@ -106,7 +118,7 @@ def create_question(
         tema=body.tema,
         subtema=body.subtema,
         difficulty=body.difficulty,
-        order_index=body.order_index,
+        order_index=order_index,
         image_url=body.image_url,
         score=body.score,
         metadata_json=body.metadata_json,
