@@ -25,11 +25,11 @@ export function SectionNav({ sections, currentSectionIndex, answeredPerSection, 
             key={sec.id}
             onClick={() => onSectionClick(idx)}
             className={`shrink-0 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-              isActive ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'
+              isActive ? 'border-brand-600 text-brand-700' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             {sec.title}
-            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${isActive ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${isActive ? 'bg-brand-100 text-brand-700' : 'bg-gray-100 text-gray-500'}`}>
               {answered}/{sec.questionCount}
             </span>
           </button>

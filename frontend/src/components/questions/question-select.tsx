@@ -55,15 +55,15 @@ export function QuestionSelect({ question, answer, onAnswer }: QuestionSelectPro
             onClick={() => handleClick(opt.value)}
             className={`w-full text-left flex items-start gap-3 px-4 py-3.5 rounded-xl border-2 transition-all group ${
               selected
-                ? 'border-blue-500 bg-blue-50 shadow-sm'
-                : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/40'
+                ? 'border-brand-500 bg-brand-50 shadow-sm'
+                : 'border-gray-200 bg-white hover:border-brand-300 hover:bg-brand-50/40'
             }`}
           >
             {/* Letter badge */}
             <span className={`flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
               selected
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-700'
+                ? 'bg-brand-600 text-white'
+                : 'bg-gray-100 text-gray-600 group-hover:bg-brand-100 group-hover:text-brand-700'
             }`}>
               {letter}
             </span>
@@ -79,7 +79,7 @@ export function QuestionSelect({ question, answer, onAnswer }: QuestionSelectPro
                 />
               )}
               <span className={`block text-sm leading-relaxed pt-0.5 ${
-                selected ? 'text-blue-900 font-medium' : 'text-gray-700'
+                selected ? 'text-brand-900 font-medium' : 'text-gray-700'
               }`}>
                 {opt.label}
               </span>
@@ -88,7 +88,7 @@ export function QuestionSelect({ question, answer, onAnswer }: QuestionSelectPro
             {/* Check indicator */}
             {selected && (
               <span className="flex-shrink-0 mt-0.5">
-                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="w-5 h-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                 </svg>
               </span>

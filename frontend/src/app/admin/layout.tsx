@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/ui/logo';
 
 const NAV_LINKS = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
@@ -40,8 +41,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!token || !user || !['admin', 'editor'].includes(user.role)) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Verificando acceso...</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-slate-500">Verificando acceso…</p>
       </div>
     );
   }
@@ -52,56 +53,66 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-slate-50">
       {/* Sidebar */}
-      <aside className="w-[220px] shrink-0 bg-white border-r border-gray-200 flex flex-col fixed inset-y-0 left-0 z-10">
+      <aside className="w-[244px] shrink-0 bg-white border-r border-slate-200/80 flex flex-col fixed inset-y-0 left-0 z-10">
         {/* Brand */}
-        <div className="h-14 flex items-center px-5 border-b border-gray-100">
-          <span className="font-bold text-blue-600 text-base tracking-tight">Escobita Admin</span>
+        <div className="h-16 flex items-center px-5 border-b border-slate-100">
+          <Link href="/admin">
+            <Logo subtitle="Admin" />
+          </Link>
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {NAV_LINKS.map(({ label, icon: Icon, href }) => (
             (user.role === 'admin' || (href !== '/admin/config' && href !== '/admin/users')) && (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
                   isActive(href)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                    ? 'bg-brand-50 text-brand-800'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900',
                 )}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                {isActive(href) && (
+                  <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-brand-700" />
+                )}
+                <Icon className={cn('h-[18px] w-[18px] shrink-0 transition-colors', isActive(href) ? 'text-brand-700' : 'text-slate-400 group-hover:text-slate-600')} />
                 {label}
               </Link>
             )
           ))}
 
-          <div className="my-2 border-t border-gray-100" />
+          <div className="my-3 border-t border-slate-100" />
 
           <a
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-all"
           >
-            <ExternalLink className="h-4 w-4 shrink-0" />
+            <ExternalLink className="h-[18px] w-[18px] shrink-0 text-slate-400 group-hover:text-slate-600" />
             Ver simulador
           </a>
         </nav>
 
         {/* User + logout */}
-        <div className="border-t border-gray-100 p-4">
-          <p className="text-sm font-medium text-gray-800 truncate">{user.name}</p>
-          <span className="inline-block mt-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-            {user.role}
-          </span>
+        <div className="border-t border-slate-100 p-3">
+          <div className="flex items-center gap-3 rounded-xl px-2 py-2">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-700 text-sm font-bold text-white">
+              {(user.name ?? 'A').charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-slate-800">{user.name}</p>
+              <span className="text-xs font-medium capitalize text-success-600">{user.role}</span>
+            </div>
+          </div>
           <button
             onClick={() => { logout(); router.push('/login'); }}
-            className="mt-3 flex items-center gap-2 text-sm text-red-600 hover:text-red-800 transition-colors"
+            className="mt-1 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-slate-500 transition-colors hover:bg-danger-50 hover:text-danger-600"
           >
             <LogOut className="h-4 w-4" />
             Cerrar sesión
@@ -110,8 +121,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 ml-[220px] min-h-screen">
-        <main className="p-8">{children}</main>
+      <div className="flex-1 ml-[244px] min-h-screen">
+        <main className="p-6 sm:p-8 max-w-7xl">{children}</main>
       </div>
     </div>
   );

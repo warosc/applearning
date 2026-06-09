@@ -59,7 +59,7 @@ export function QuestionNumeric({ question, answer, onAnswer }: QuestionNumericP
           value={numericValue}
           onChange={(e) => emitAnswer(e.target.value, selectedUnit)}
           placeholder="Ingresa el valor..."
-          className="w-48 px-4 py-3 text-lg font-mono border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+          className="w-48 px-4 py-3 text-lg font-mono border-2 border-gray-200 rounded-xl focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all"
         />
 
         {/* Unit selector if multiple units defined, or static unit label */}
@@ -67,7 +67,7 @@ export function QuestionNumeric({ question, answer, onAnswer }: QuestionNumericP
           <select
             value={selectedUnit}
             onChange={(e) => emitAnswer(numericValue, e.target.value)}
-            className="border-2 border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 bg-white transition-all"
+            className="border-2 border-gray-200 rounded-xl px-3 py-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 bg-white transition-all"
           >
             {units.map((u) => (
               <option key={u} value={u}>{u}</option>

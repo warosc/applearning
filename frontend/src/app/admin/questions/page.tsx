@@ -70,7 +70,7 @@ interface Question {
 function Spinner() {
   return (
     <div className="flex items-center justify-center py-16">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent mx-auto" />
     </div>
   );
 }
@@ -204,7 +204,7 @@ function QuestionDialog({
               <label className="block text-sm font-medium text-gray-700 mb-1">Materia</label>
               <select
                 {...register('materia')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="">Sin materia</option>
                 {MATERIAS.map((m) => (
@@ -218,7 +218,7 @@ function QuestionDialog({
               <label className="block text-sm font-medium text-gray-700 mb-1">Dificultad *</label>
               <select
                 {...register('difficulty')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {DIFFICULTIES.map((d) => (
                   <option key={d} value={d}>
@@ -238,14 +238,14 @@ function QuestionDialog({
               <label className="block text-sm font-medium text-gray-700 mb-1">Tema</label>
               <input
                 {...register('tema')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Subtema</label>
               <input
                 {...register('subtema')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </div>
@@ -256,7 +256,7 @@ function QuestionDialog({
               <label className="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
               <select
                 {...register('type')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {TIPOS.map((t) => (
                   <option key={t} value={t}>
@@ -273,7 +273,7 @@ function QuestionDialog({
                 type="number"
                 min={0}
                 step={0.5}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
               {errors.score && <p className="text-red-500 text-xs mt-1">{errors.score.message}</p>}
             </div>
@@ -285,7 +285,7 @@ function QuestionDialog({
             <textarea
               {...register('prompt')}
               rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 resize-none"
             />
             {errors.prompt && (
               <p className="text-red-500 text-xs mt-1">{errors.prompt.message}</p>
@@ -307,7 +307,7 @@ function QuestionDialog({
                     <input
                       {...register(`options.${i}.label`)}
                       placeholder={`Opción ${String.fromCharCode(65 + i)}`}
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                     <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer shrink-0">
                       <input
@@ -322,7 +322,7 @@ function QuestionDialog({
                           }
                           setValue(`options.${i}.isCorrect`, e.target.checked);
                         }}
-                        className="accent-blue-600"
+                        className="accent-brand-600"
                       />
                       Correcta
                     </label>
@@ -338,7 +338,7 @@ function QuestionDialog({
               <label className="block text-sm font-medium text-gray-700 mb-1">Valor correcto</label>
               <input
                 {...register('correctValue')}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           )}
@@ -354,7 +354,7 @@ function QuestionDialog({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-60"
+              className="px-4 py-2 text-sm bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium disabled:opacity-60"
             >
               {isSubmitting ? 'Guardando...' : 'Guardar pregunta'}
             </button>
@@ -518,7 +518,7 @@ export default function QuestionBankPage() {
         cell: ({ getValue }) => {
           const v = getValue<string | undefined>();
           return v ? (
-            <span className="px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
+            <span className="px-2 py-0.5 rounded-full text-xs bg-brand-100 text-brand-700">
               {v}
             </span>
           ) : (
@@ -571,7 +571,7 @@ export default function QuestionBankPage() {
           <div className="flex items-center gap-3 justify-end">
             <button
               onClick={() => { setEditingQuestion(row.original); setDialogOpen(true); }}
-              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs"
+              className="flex items-center gap-1 text-brand-600 hover:text-brand-800 text-xs"
             >
               <Pencil className="h-3.5 w-3.5" />
               Editar
@@ -642,7 +642,7 @@ export default function QuestionBankPage() {
           </button>
           <button
             onClick={() => { setEditingQuestion(null); setDialogOpen(true); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
           >
             + Nueva pregunta
           </button>
@@ -664,7 +664,7 @@ export default function QuestionBankPage() {
               <button
                 onClick={saveOrder}
                 disabled={savingOrder}
-                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-3 py-1.5 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50"
               >
                 {savingOrder ? 'Guardando...' : 'Guardar orden'}
               </button>
@@ -678,13 +678,13 @@ export default function QuestionBankPage() {
                 onDragStart={() => handleDragStart(i)}
                 onDragOver={(e) => handleDragOver(e, i)}
                 onDrop={handleDrop}
-                className={`flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-0 cursor-grab active:cursor-grabbing hover:bg-gray-50 ${dragIndex === i ? 'bg-blue-50 opacity-70' : ''}`}
+                className={`flex items-center gap-3 px-4 py-3 border-b border-gray-100 last:border-0 cursor-grab active:cursor-grabbing hover:bg-gray-50 ${dragIndex === i ? 'bg-brand-50 opacity-70' : ''}`}
               >
                 <GripVertical className="h-4 w-4 text-gray-400 shrink-0" />
                 <span className="text-xs text-gray-400 w-6 shrink-0">{i + 1}</span>
                 <span className="text-sm text-gray-700 flex-1 truncate">{q.prompt}</span>
                 {q.materia && (
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0">{q.materia}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 shrink-0">{q.materia}</span>
                 )}
                 <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${DIFFICULTY_BADGE[q.difficulty] ?? 'bg-gray-100 text-gray-600'}`}>
                   {q.difficulty}
@@ -703,12 +703,12 @@ export default function QuestionBankPage() {
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
               placeholder="Buscar por enunciado..."
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-60 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-60 focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
             <select
               value={materiaFilter}
               onChange={(e) => setMateriaFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">Todas las materias</option>
               {MATERIAS.map((m) => (
@@ -720,7 +720,7 @@ export default function QuestionBankPage() {
             <select
               value={difficultyFilter}
               onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">Toda dificultad</option>
               {DIFFICULTIES.map((d) => (
@@ -732,7 +732,7 @@ export default function QuestionBankPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">Todos los tipos</option>
               {TIPOS.map((t) => (
@@ -746,7 +746,7 @@ export default function QuestionBankPage() {
                 type="checkbox"
                 checked={bankOnly}
                 onChange={(e) => setBankOnly(e.target.checked)}
-                className="accent-blue-600"
+                className="accent-brand-600"
               />
               Solo banco
             </label>
@@ -761,7 +761,7 @@ export default function QuestionBankPage() {
               <p className="text-gray-500 mb-4">No hay preguntas con estos filtros.</p>
               <button
                 onClick={() => { setEditingQuestion(null); setDialogOpen(true); }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+                className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
               >
                 Crear primera pregunta
               </button>

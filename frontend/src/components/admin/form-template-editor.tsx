@@ -107,7 +107,7 @@ export function FormTemplateEditor({ initialFields, onSave, saving }: Props) {
                   value={field.label}
                   onChange={(e) => updateField(field.id, { label: e.target.value })}
                   placeholder="Ej: Nombre completo"
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
               {/* Type */}
@@ -116,7 +116,7 @@ export function FormTemplateEditor({ initialFields, onSave, saving }: Props) {
                 <select
                   value={field.type}
                   onChange={(e) => updateField(field.id, { type: e.target.value as FormField['type'], options: undefined })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   {FIELD_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>{t.label}</option>
@@ -176,7 +176,7 @@ export function FormTemplateEditor({ initialFields, onSave, saving }: Props) {
                     value={opt}
                     onChange={(e) => updateOption(field.id, optIdx, e.target.value)}
                     placeholder={`Opción ${optIdx + 1}`}
-                    className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="flex-1 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                   <button
                     type="button"
@@ -190,7 +190,7 @@ export function FormTemplateEditor({ initialFields, onSave, saving }: Props) {
               <button
                 type="button"
                 onClick={() => addOption(field.id)}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs text-brand-600 hover:text-brand-800"
               >
                 + Agregar opción
               </button>
@@ -203,7 +203,7 @@ export function FormTemplateEditor({ initialFields, onSave, saving }: Props) {
         <button
           type="button"
           onClick={addField}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          className="text-sm text-brand-600 hover:text-brand-800 font-medium"
         >
           + Agregar campo
         </button>
@@ -211,7 +211,7 @@ export function FormTemplateEditor({ initialFields, onSave, saving }: Props) {
           type="button"
           onClick={() => onSave(fields)}
           disabled={saving}
-          className="ml-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg"
+          className="ml-auto bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg"
         >
           {saving ? 'Guardando...' : 'Guardar formulario'}
         </button>

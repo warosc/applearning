@@ -7,6 +7,12 @@ import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from 'recharts';
+import { BookOpen, Database, ClipboardList, Users, Percent } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { LoadingState } from '@/components/ui/spinner';
 
 interface DashboardData {
   total_exams: number;
@@ -27,31 +33,11 @@ interface DashboardData {
   }[];
 }
 
-const DIFFICULTY_BADGE: Record<string, string> = {
-  facil: 'bg-green-100 text-green-700',
-  medio: 'bg-amber-100 text-amber-700',
-  dificil: 'bg-red-100 text-red-700',
+const DIFFICULTY_VARIANT: Record<string, 'success' | 'warning' | 'danger'> = {
+  facil: 'success',
+  medio: 'warning',
+  dificil: 'danger',
 };
-
-function Spinner() {
-  return (
-    <div className="flex items-center justify-center py-16">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-    </div>
-  );
-}
-
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
-  return (
-    <div className="rounded-xl border bg-white p-6 shadow-sm">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="text-3xl font-bold text-gray-900 mt-1">
-        {value}
-        {sub && <span className="text-lg text-gray-500 ml-1">{sub}</span>}
-      </p>
-    </div>
-  );
-}
 
 export default function AdminDashboardPage() {
   const token = useAuthStore((s) => s.token)!;
@@ -66,11 +52,11 @@ export default function AdminDashboardPage() {
       .finally(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <Spinner />;
+  if (loading) return <LoadingState label="Cargando dashboard…" />;
   if (error) {
     return (
       <div className="py-16 text-center">
-        <p className="text-red-600">{error}</p>
+        <p className="text-danger-600">{error}</p>
       </div>
     );
   }
@@ -84,133 +70,105 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <PageHeader title="Dashboard" description="Resumen general de la plataforma" />
 
       {/* Metric cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard
-          label="Simuladores"
-          value={`${data.published_exams ?? 0}/${data.total_exams ?? 0}`}
-          sub="pub/total"
-        />
-        <StatCard label="Preguntas (banco)" value={data.bank_questions ?? 0} />
-        <StatCard label="Intentos realizados" value={data.total_attempts ?? 0} />
-        <StatCard label="Activos hoy" value={data.active_today ?? 0} />
-        <StatCard
-          label="Promedio general"
-          value={`${(data.avg_percentage ?? 0).toFixed(1)}`}
-          sub="%"
-        />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        <StatCard label="Simuladores" value={`${data.published_exams ?? 0}/${data.total_exams ?? 0}`} hint="publicados / total" icon={BookOpen} accent="brand" />
+        <StatCard label="Preguntas (banco)" value={data.bank_questions ?? 0} icon={Database} accent="info" />
+        <StatCard label="Intentos" value={data.total_attempts ?? 0} icon={ClipboardList} accent="success" />
+        <StatCard label="Activos hoy" value={data.active_today ?? 0} icon={Users} accent="warning" />
+        <StatCard label="Promedio general" value={`${(data.avg_percentage ?? 0).toFixed(1)}%`} icon={Percent} accent="brand" />
       </div>
 
       {/* Charts row */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Line chart: intentos por día */}
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-700 mb-4">
-            Intentos por día (últimos 14 días)
-          </h2>
-          {chartData.length === 0 ? (
-            <p className="text-sm text-gray-400 py-8 text-center">Sin datos aún.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={240}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="count"
-                  stroke="#2563eb"
-                  strokeWidth={2}
-                  dot={false}
-                  name="Intentos"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader><CardTitle>Intentos por día (últimos 14 días)</CardTitle></CardHeader>
+          <CardContent>
+            {chartData.length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-400">Sin datos aún.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748b' }} stroke="#cbd5e1" />
+                  <YAxis tick={{ fontSize: 11, fill: '#64748b' }} stroke="#cbd5e1" allowDecimals={false} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 8px 24px rgba(15,23,42,0.08)', fontSize: 12 }} />
+                  <Line type="monotone" dataKey="count" stroke="#1e3a8a" strokeWidth={2.5} dot={false} name="Intentos" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Bar chart: distribución de resultados */}
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-700 mb-4">
-            Distribución de puntajes
-          </h2>
-          {(data.score_distribution ?? []).length === 0 ? (
-            <p className="text-sm text-gray-400 py-8 text-center">Sin datos aún.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={data.score_distribution}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="range" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#2563eb" radius={[4, 4, 0, 0]} name="Intentos" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+        <Card>
+          <CardHeader><CardTitle>Distribución de puntajes</CardTitle></CardHeader>
+          <CardContent>
+            {(data.score_distribution ?? []).length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-400">Sin datos aún.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={data.score_distribution}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" />
+                  <XAxis dataKey="range" tick={{ fontSize: 11, fill: '#64748b' }} stroke="#cbd5e1" />
+                  <YAxis tick={{ fontSize: 11, fill: '#64748b' }} stroke="#cbd5e1" allowDecimals={false} />
+                  <Tooltip cursor={{ fill: 'rgba(30,58,138,0.06)' }} contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 8px 24px rgba(15,23,42,0.08)', fontSize: 12 }} />
+                  <Bar dataKey="count" fill="#1e3a8a" radius={[6, 6, 0, 0]} name="Intentos" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Top 10 most failed questions */}
-      <div className="rounded-xl border bg-white overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-700">
-            Top 10 preguntas más falladas
-          </h2>
-        </div>
+      <Card className="overflow-hidden">
+        <CardHeader><CardTitle>Top 10 preguntas más falladas</CardTitle></CardHeader>
         {(data.top_failed_questions ?? []).length === 0 ? (
-          <p className="px-6 py-8 text-sm text-gray-400 text-center">Sin datos aún.</p>
+          <p className="px-6 pb-8 text-center text-sm text-slate-400">Sin datos aún.</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="px-4 py-3 text-left font-medium text-gray-700">Pregunta</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-700">Materia</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-700">Dificultad</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-700">% Correcto</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.top_failed_questions.map((q) => (
-                <tr key={q.question_id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 max-w-xs">
-                    <p className="truncate text-gray-800">
-                      {q.prompt.length > 80 ? q.prompt.slice(0, 80) + '…' : q.prompt}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{q.materia || '—'}</td>
-                  <td className="px-4 py-3">
-                    {q.difficulty ? (
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${DIFFICULTY_BADGE[q.difficulty] ?? 'bg-gray-100 text-gray-600'}`}
-                      >
-                        {q.difficulty}
-                      </span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full max-w-[100px]">
-                        <div
-                          className="h-full rounded-full bg-red-400"
-                          style={{ width: `${q.pct_correct ?? 0}%` }}
-                        />
-                      </div>
-                      <span className="text-gray-600 text-xs w-10 text-right">
-                        {(q.pct_correct ?? 0).toFixed(0)}%
-                      </span>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-y border-slate-100 bg-slate-50/80 text-xs uppercase tracking-wide text-slate-500">
+                  <th className="px-6 py-3 text-left font-semibold">Pregunta</th>
+                  <th className="px-4 py-3 text-left font-semibold">Materia</th>
+                  <th className="px-4 py-3 text-left font-semibold">Dificultad</th>
+                  <th className="px-6 py-3 text-left font-semibold">% Correcto</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {data.top_failed_questions.map((q) => (
+                  <tr key={q.question_id} className="transition-colors hover:bg-slate-50/70">
+                    <td className="max-w-xs px-6 py-3">
+                      <p className="truncate font-medium text-slate-800">
+                        {q.prompt.length > 80 ? q.prompt.slice(0, 80) + '…' : q.prompt}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{q.materia || '—'}</td>
+                    <td className="px-4 py-3">
+                      {q.difficulty ? (
+                        <Badge variant={DIFFICULTY_VARIANT[q.difficulty] ?? 'neutral'} className="capitalize">{q.difficulty}</Badge>
+                      ) : '—'}
+                    </td>
+                    <td className="px-6 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 max-w-[120px] flex-1 overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-full rounded-full bg-danger-400 transition-all duration-500" style={{ width: `${q.pct_correct ?? 0}%` }} />
+                        </div>
+                        <span className="w-10 text-right text-xs font-medium text-slate-600">
+                          {(q.pct_correct ?? 0).toFixed(0)}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

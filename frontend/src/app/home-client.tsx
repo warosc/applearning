@@ -6,7 +6,10 @@ import Link from 'next/link';
 import { fetchExams } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
-import { Clock, BookOpen, Star, ChevronRight, AlertCircle, Settings, HelpCircle, Dumbbell } from 'lucide-react';
+import { Logo } from '@/components/ui/logo';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Clock, BookOpen, Star, ChevronRight, AlertCircle, Settings, HelpCircle, Dumbbell, ArrowRight, Timer, ListChecks, Calculator } from 'lucide-react';
 
 interface Exam {
   id: string;
@@ -36,70 +39,62 @@ export function HomeClient() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+    <main className="min-h-screen bg-slate-50">
 
       {/* ── NAVBAR ── */}
-      <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+      <nav className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/85 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
+          <Link href="/" className="flex-shrink-0">
+            <Logo />
+          </Link>
 
-          {/* Brand */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-              <BookOpen className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-bold text-gray-900 text-base">Escobita</span>
-          </div>
-
-          {/* Right side */}
-          <div className="flex items-center gap-2">
-
-            {/* Práctica — siempre visible */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Link
               href="/practica"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-sm font-medium text-blue-700 hover:bg-blue-100 hover:border-blue-400 transition-all"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition-all hover:bg-brand-50 hover:text-brand-700"
             >
               <Dumbbell className="h-4 w-4" />
-              Práctica
+              <span className="hidden sm:inline">Práctica</span>
             </Link>
-
-            {/* Ayuda — siempre visible, estilo botón */}
             <Link
               href="/ayuda"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-all"
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition-all hover:bg-brand-50 hover:text-brand-700"
             >
               <HelpCircle className="h-4 w-4" />
-              Ayuda
+              <span className="hidden sm:inline">Ayuda</span>
             </Link>
 
             {token && user ? (
               <>
-                <span className="hidden sm:block text-sm text-gray-500">{user.name}</span>
-                <Link href="/historial" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                <span className="mx-1 hidden h-5 w-px bg-slate-200 sm:block" />
+                <Link href="/historial" className="hidden rounded-lg px-3 py-1.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-100 sm:block">
                   Historial
                 </Link>
-                <Link href="/perfil" className="text-sm text-gray-500 hover:text-gray-700">Perfil</Link>
                 {user.role === 'admin' && (
                   <Link
                     href="/admin"
-                    className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-brand-700 transition-all hover:bg-brand-50"
                   >
                     <Settings className="h-4 w-4" />
-                    Admin
+                    <span className="hidden sm:inline">Admin</span>
                   </Link>
                 )}
+                <Link href="/perfil" className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 transition-colors hover:bg-slate-100" title="Mi perfil">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-700 text-xs font-bold text-white">
+                    {(user.name ?? 'U').charAt(0).toUpperCase()}
+                  </span>
+                  <span className="hidden text-sm font-medium text-slate-700 sm:block">{user.name}</span>
+                </Link>
                 <button
                   onClick={() => logout()}
-                  className="text-sm text-red-500 hover:text-red-700"
+                  className="rounded-lg px-2.5 py-1.5 text-sm font-medium text-slate-400 transition-colors hover:bg-danger-50 hover:text-danger-600"
                 >
                   Salir
                 </button>
               </>
             ) : (
-              <Link
-                href="/login"
-                className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
-              >
-                Iniciar sesión
+              <Link href="/login">
+                <Button size="sm">Iniciar sesión</Button>
               </Link>
             )}
           </div>
@@ -107,87 +102,105 @@ export function HomeClient() {
       </nav>
 
       {/* ── HERO ── */}
-      <div className="bg-white border-b px-4 py-14 text-center">
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-sm text-blue-700 font-medium">
-            <Star className="h-3.5 w-3.5" />
-            Plataforma de simulación de exámenes
+      <section className="relative overflow-hidden border-b border-slate-200/70 bg-gradient-to-br from-brand-800 via-brand-700 to-brand-900 text-white">
+        <div className="pointer-events-none absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25), transparent 40%), radial-gradient(circle at 80% 0%, rgba(16,185,129,0.35), transparent 35%)' }} />
+        <div className="relative mx-auto max-w-3xl px-4 py-16 text-center sm:py-20">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-white/90 backdrop-blur-sm">
+            <Star className="h-3.5 w-3.5 text-success-300" />
+            Plataforma oficial de simulación EXHCOBA
           </div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-slate-900">
-            Simulador Escobita
+          <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+            Prepárate con exámenes
+            <span className="block text-success-300">como los reales</span>
           </h1>
-          <p className="text-lg text-slate-500 max-w-xl mx-auto">
-            Practica con exámenes reales: temporizador, múltiples tipos de preguntas,
-            calculadora integrada y resultados detallados.
+          <p className="mx-auto mt-5 max-w-xl text-base text-white/80 sm:text-lg">
+            Temporizador, múltiples tipos de pregunta, calculadora integrada y resultados
+            detallados por materia. Practica hasta dominarlo.
           </p>
-          <div className="mt-6">
-            <Link
-              href="/ayuda"
-              className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline font-medium"
-            >
-              <HelpCircle className="h-4 w-4" />
-              ¿Cómo funciona el simulador?
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a href="#examenes">
+              <Button size="lg" className="bg-white text-brand-800 hover:bg-slate-100">
+                Ver exámenes
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </a>
+            <Link href="/ayuda">
+              <Button size="lg" variant="ghost" className="text-white hover:bg-white/10">
+                <HelpCircle className="h-4 w-4" />
+                ¿Cómo funciona?
+              </Button>
             </Link>
           </div>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-white/75">
+            <span className="flex items-center gap-2"><Timer className="h-4 w-4 text-success-300" /> Con temporizador</span>
+            <span className="flex items-center gap-2"><ListChecks className="h-4 w-4 text-success-300" /> Resultados por materia</span>
+            <span className="flex items-center gap-2"><Calculator className="h-4 w-4 text-success-300" /> Calculadora integrada</span>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* ── EXÁMENES ── */}
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <h2 className="mb-5 text-lg font-semibold text-slate-700">Exámenes disponibles</h2>
+      <div id="examenes" className="mx-auto max-w-3xl scroll-mt-20 px-4 py-12">
+        <h2 className="mb-5 font-display text-xl font-bold text-slate-900">Exámenes disponibles</h2>
 
         {loading && (
-          <div className="flex items-center justify-center py-16">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <div className="space-y-4">
+            {[0, 1].map((i) => (
+              <div key={i} className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-soft">
+                <Skeleton className="h-5 w-1/2" />
+                <Skeleton className="mt-3 h-4 w-3/4" />
+                <Skeleton className="mt-4 h-4 w-32" />
+              </div>
+            ))}
           </div>
         )}
 
         {error && (
-          <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-4 text-red-700">
+          <div className="flex items-center gap-3 rounded-2xl border border-danger-200 bg-danger-50 px-4 py-4 text-danger-700">
             <AlertCircle className="h-5 w-5 flex-shrink-0" />
             <div>
-              <p className="font-medium">Error de conexión</p>
+              <p className="font-semibold">Error de conexión</p>
               <p className="text-sm">{error}. Asegúrate de que el backend está corriendo.</p>
             </div>
           </div>
         )}
 
         {!loading && !error && exams.length === 0 && (
-          <div className="rounded-xl border bg-white px-6 py-12 text-center text-slate-500">
-            <BookOpen className="mx-auto mb-3 h-10 w-10 text-slate-300" />
-            <p className="font-medium">No hay exámenes disponibles</p>
-            <p className="mt-1 text-sm">Ejecuta el seed para crear el examen demo.</p>
-          </div>
+          <EmptyState
+            icon={BookOpen}
+            title="No hay exámenes disponibles"
+            description="Aún no se han publicado simuladores. Vuelve más tarde."
+          />
         )}
 
         <ul className="space-y-4">
           {exams.map((exam) => (
             <li
               key={exam.id}
-              className="group rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md"
+              className="card-surface hover-lift group p-5"
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-slate-800 group-hover:text-blue-700 transition-colors">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-display text-lg font-semibold text-slate-900 transition-colors group-hover:text-brand-700">
                     {exam.title}
                   </h3>
                   {exam.description && (
-                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">{exam.description}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-slate-500">{exam.description}</p>
                   )}
-                  <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
+                  <div className="mt-4 flex flex-wrap items-center gap-2.5 text-xs">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
+                      <Clock className="h-3.5 w-3.5 text-brand-600" />
                       {exam.duration_minutes ?? exam.durationMinutes} min
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Star className="h-3.5 w-3.5" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600">
+                      <Star className="h-3.5 w-3.5 text-success-600" />
                       {exam.total_score ?? exam.totalScore} pts
                     </span>
                   </div>
                 </div>
                 <Button
                   onClick={() => router.push(`/examen?exam=${exam.id}`)}
-                  className="flex-shrink-0 gap-1"
+                  className="flex-shrink-0"
                 >
                   Iniciar
                   <ChevronRight className="h-4 w-4" />

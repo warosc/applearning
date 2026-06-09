@@ -45,15 +45,15 @@ export function QuestionMultiWeighted({ question, answer, onAnswer }: QuestionMu
               onClick={() => toggle(opt.value)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-left text-sm transition-all ${
                 isSelected
-                  ? 'bg-blue-50 border-blue-500 text-blue-900 shadow-sm'
-                  : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50/50'
+                  ? 'bg-brand-50 border-brand-500 text-brand-900 shadow-sm'
+                  : 'bg-white border-gray-200 text-gray-700 hover:border-brand-300 hover:bg-brand-50/50'
               }`}
             >
               {/* Checkbox */}
               <span
                 className={`flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded border-2 transition-all ${
                   isSelected
-                    ? 'bg-blue-600 border-blue-600'
+                    ? 'bg-brand-600 border-brand-600'
                     : 'bg-white border-gray-400'
                 }`}
               >
@@ -68,7 +68,7 @@ export function QuestionMultiWeighted({ question, answer, onAnswer }: QuestionMu
               <span
                 className={`flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full text-[11px] font-bold border ${
                   isSelected
-                    ? 'bg-blue-600 text-white border-blue-600'
+                    ? 'bg-brand-600 text-white border-brand-600'
                     : 'bg-gray-100 text-gray-600 border-gray-300'
                 }`}
               >
@@ -82,7 +82,7 @@ export function QuestionMultiWeighted({ question, answer, onAnswer }: QuestionMu
       </div>
 
       {selected.length > 0 && (
-        <p className="text-xs text-blue-600 font-medium">
+        <p className="text-xs text-brand-600 font-medium">
           {selected.length} opción{selected.length !== 1 ? 'es' : ''} seleccionada{selected.length !== 1 ? 's' : ''}
         </p>
       )}

@@ -307,10 +307,10 @@ export function PracticaClient() {
   if (phase === 'end') {
     const accuracy = answered > 0 ? Math.round((correctCount / answered) * 100) : 0;
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-slate-100 flex flex-col items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-gradient-to-b from-brand-50 to-slate-100 flex flex-col items-center justify-center px-4 py-12">
         <div className="bg-white rounded-2xl shadow-md border border-slate-200 max-w-sm w-full p-8 text-center space-y-5">
-          <div className="mx-auto w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-            <Trophy className="h-8 w-8 text-blue-600" />
+          <div className="mx-auto w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center">
+            <Trophy className="h-8 w-8 text-brand-600" />
           </div>
           <h2 className="text-xl font-bold text-gray-900">¡Sesión completada!</h2>
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -340,7 +340,7 @@ export function PracticaClient() {
           <div className="flex gap-3 justify-center pt-2">
             <button
               onClick={handleRestart}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors"
             >
               <RotateCcw className="h-4 w-4" />
               Otra sesión
@@ -360,7 +360,7 @@ export function PracticaClient() {
   // ── Setup screen ─────────────────────────────────────────────────────────
   if (phase === 'setup') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-slate-100 px-4 py-10">
+      <div className="min-h-screen bg-gradient-to-b from-brand-50 to-slate-100 px-4 py-10">
         <div className="max-w-lg mx-auto space-y-6">
 
           {/* Header */}
@@ -422,7 +422,7 @@ export function PracticaClient() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => handleStart(null)}
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-brand-500 bg-brand-50 text-brand-700 text-sm font-semibold hover:bg-brand-100 transition-colors"
               >
                 <BookOpen className="h-4 w-4" />
                 Todas las materias
@@ -433,7 +433,7 @@ export function PracticaClient() {
                   <button
                     key={m}
                     onClick={() => handleStart(m)}
-                    className="flex flex-col items-start px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50 transition-colors text-left"
+                    className="flex flex-col items-start px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:border-brand-300 hover:bg-brand-50 transition-colors text-left"
                   >
                     <span className="text-sm font-medium text-gray-800">{m}</span>
                     {skill && (
@@ -455,7 +455,7 @@ export function PracticaClient() {
   if (phase === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
       </div>
     );
   }
@@ -468,7 +468,7 @@ export function PracticaClient() {
   const showFeedback = phase === 'feedback';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-slate-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-brand-50 to-slate-100 flex flex-col">
 
       {/* ── Top bar ── */}
       <div className="bg-white border-b border-slate-200 shadow-sm px-4 py-3">
@@ -480,7 +480,7 @@ export function PracticaClient() {
           {/* Progress bar */}
           <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-500"
+              className="h-full bg-brand-500 rounded-full transition-all duration-500"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -497,7 +497,7 @@ export function PracticaClient() {
         {/* Meta */}
         <div className="flex items-center gap-2 flex-wrap text-xs">
           {question.materia && (
-            <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">{question.materia}</span>
+            <span className="px-2 py-1 rounded-full bg-brand-100 text-brand-700 font-medium">{question.materia}</span>
           )}
           {question.tema && (
             <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-600">{question.tema}</span>
@@ -571,7 +571,7 @@ export function PracticaClient() {
           <button
             onClick={handleConfirm}
             disabled={answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)}
-            className="w-full py-3.5 rounded-2xl text-base font-bold bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 text-white transition-colors shadow-sm"
+            className="w-full py-3.5 rounded-2xl text-base font-bold bg-brand-600 hover:bg-brand-700 disabled:bg-slate-200 disabled:text-slate-400 text-white transition-colors shadow-sm"
           >
             Confirmar respuesta
           </button>

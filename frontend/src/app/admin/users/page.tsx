@@ -16,7 +16,7 @@ interface User {
 const ROLE_BADGE: Record<string, string> = {
   admin: 'bg-red-100 text-red-700',
   editor: 'bg-purple-100 text-purple-700',
-  estudiante: 'bg-blue-100 text-blue-700',
+  estudiante: 'bg-brand-100 text-brand-700',
 };
 
 function ResetPasswordModal({ user, onClose, token }: { user: User; onClose: () => void; token: string }) {
@@ -54,15 +54,15 @@ function ResetPasswordModal({ user, onClose, token }: { user: User; onClose: () 
           <>
             <div className="space-y-3">
               <input type="password" placeholder="Nueva contraseña" value={pw} onChange={e => setPw(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               <input type="password" placeholder="Confirmar contraseña" value={confirm} onChange={e => setConfirm(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
               {err && <p className="text-xs text-red-600">{err}</p>}
             </div>
             <div className="flex gap-3">
               <button onClick={onClose} className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
               <button onClick={submit} disabled={saving}
-                className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                className="flex-1 px-4 py-2 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-700 disabled:opacity-50">
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
@@ -126,10 +126,10 @@ export default function UsersPage() {
           <input
             type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)}
             placeholder="Buscar por usuario o nombre..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
-        <button type="submit" className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+        <button type="submit" className="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700">
           Buscar
         </button>
       </form>
@@ -174,7 +174,7 @@ export default function UsersPage() {
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={() => setResetTarget(u)}
-                    className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50"
+                    className="inline-flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-800 px-2 py-1 rounded hover:bg-brand-50"
                   >
                     <KeyRound className="h-3.5 w-3.5" />
                     Reset contraseña

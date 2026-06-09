@@ -23,6 +23,7 @@ import { ResultsView } from '@/components/results-view';
 import { QuestionRenderer } from '@/components/questions/question-renderer';
 import { Calculator } from '@/components/calculator';
 import { Timer } from '@/components/timer';
+import { LogoMark } from '@/components/ui/logo';
 import {
   Menu, X, Calculator as CalcIcon, Flag,
   ChevronLeft, ChevronRight, Send, CheckSquare, HelpCircle,
@@ -79,15 +80,15 @@ function QuestionNavPanel({
 
             let cls = 'relative flex items-center justify-center rounded text-xs font-semibold h-8 w-full cursor-pointer border transition-all select-none ';
             if (isCurrent) {
-              cls += 'bg-blue-600 text-white border-blue-600 shadow-sm';
+              cls += 'bg-brand-700 text-white border-brand-700 shadow-sm';
             } else if (isAns && isMarked) {
               cls += 'bg-amber-100 text-amber-800 border-amber-400';
             } else if (isAns) {
-              cls += 'bg-green-100 text-green-800 border-green-400';
+              cls += 'bg-success-100 text-success-800 border-success-400';
             } else if (isMarked) {
               cls += 'bg-amber-50 text-amber-700 border-amber-300';
             } else {
-              cls += 'bg-white text-gray-600 border-gray-300 hover:border-blue-400 hover:text-blue-600';
+              cls += 'bg-white text-slate-600 border-slate-300 hover:border-brand-400 hover:text-brand-700';
             }
 
             return (
@@ -105,10 +106,10 @@ function QuestionNavPanel({
       {/* Legend */}
       <div className="px-3 py-2 border-t border-slate-200 space-y-1">
         {[
-          { color: 'bg-blue-600', label: 'Actual' },
-          { color: 'bg-green-100 border border-green-400', label: 'Respondida' },
+          { color: 'bg-brand-700', label: 'Actual' },
+          { color: 'bg-success-100 border border-success-400', label: 'Respondida' },
           { color: 'bg-amber-50 border border-amber-300', label: 'Marcada' },
-          { color: 'bg-white border border-gray-300', label: 'Pendiente' },
+          { color: 'bg-white border border-slate-300', label: 'Pendiente' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-2 text-[10px] text-gray-500">
             <span className={`inline-block w-3 h-3 rounded-sm ${color}`} />
@@ -405,28 +406,28 @@ export function ExamenClient() {
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center">
       <div className="text-center space-y-4">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto" />
-        <p className="text-gray-500 text-sm">Cargando simulador...</p>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-600 border-t-transparent mx-auto" />
+        <p className="text-slate-500 text-sm font-medium">Cargando simulador…</p>
       </div>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow p-8 text-center max-w-sm space-y-4">
-        <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto">
-          <span className="text-red-600 text-xl font-bold">!</span>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+      <div className="card-surface p-8 text-center max-w-sm space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-danger-50 flex items-center justify-center mx-auto">
+          <span className="text-danger-600 text-xl font-bold">!</span>
         </div>
-        <p className="text-gray-800 font-semibold">No se pudo cargar el examen</p>
-        <p className="text-red-600 text-sm">{error}</p>
+        <p className="text-slate-800 font-display font-semibold">No se pudo cargar el examen</p>
+        <p className="text-danger-600 text-sm">{error}</p>
         <div className="flex flex-col gap-2 pt-2">
           <button
             onClick={() => { setError(''); setLoading(true); window.location.reload(); }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+            className="w-full bg-brand-700 hover:bg-brand-800 text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition-colors"
           >
             Reintentar
           </button>
-          <button onClick={() => router.push('/')} className="text-blue-600 hover:underline text-sm">
+          <button onClick={() => router.push('/')} className="text-brand-700 hover:underline text-sm font-medium">
             Volver al inicio
           </button>
         </div>
@@ -495,36 +496,40 @@ export function ExamenClient() {
       <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
 
         {/* ── HEADER ── */}
-        <header className="h-14 bg-slate-800 text-white flex items-center px-4 gap-4 flex-shrink-0 z-30 shadow-md">
+        <header className="h-16 bg-gradient-to-r from-brand-900 to-brand-700 text-white flex items-center px-4 gap-3 sm:gap-4 flex-shrink-0 z-30 shadow-md">
           {/* Mobile menu */}
           <button
-            className="lg:hidden flex items-center justify-center w-8 h-8 rounded hover:bg-slate-700 transition-colors"
+            className="lg:hidden flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 transition-colors"
             onClick={() => setShowMobileNav(true)}
+            aria-label="Abrir navegación"
           >
             <Menu className="h-5 w-5" />
           </button>
 
           {/* Title */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="hidden sm:flex flex-col leading-tight">
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-medium">Escobita</span>
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <LogoMark className="hidden h-8 w-8 shrink-0 rounded-lg ring-1 ring-white/20 sm:block" />
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="hidden text-[11px] text-white/60 uppercase tracking-wider font-semibold sm:block">Simulador Escobita</span>
               <span className="text-sm font-semibold text-white truncate">{examTitle}</span>
             </div>
-            <span className="sm:hidden text-sm font-semibold text-white truncate">{examTitle}</span>
           </div>
 
           {/* Progress (desktop) */}
-          <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-300 bg-slate-700 px-3 py-1.5 rounded-full">
-            <CheckSquare className="h-3.5 w-3.5 text-green-400" />
+          <div className="hidden md:flex items-center gap-1.5 text-xs font-medium text-white/90 bg-white/10 px-3 py-1.5 rounded-full">
+            <CheckSquare className="h-3.5 w-3.5 text-success-300" />
             <span>{answeredCount}/{totalQ}</span>
           </div>
 
           {/* Saving indicator */}
           {isSaving && (
-            <span className="hidden sm:block text-xs text-blue-400 animate-pulse">Guardando...</span>
+            <span className="hidden sm:flex items-center gap-1.5 text-xs text-white/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-success-300 animate-pulse" />
+              Guardando…
+            </span>
           )}
           {lastSaveError && (
-            <span className="hidden sm:block text-xs text-red-400">Error de guardado</span>
+            <span className="hidden sm:block text-xs text-danger-200">Error de guardado</span>
           )}
 
           {/* Timer */}
@@ -542,7 +547,7 @@ export function ExamenClient() {
             target="_blank"
             rel="noopener noreferrer"
             title="Manual de ayuda"
-            className="flex items-center justify-center w-8 h-8 rounded hover:bg-slate-700 transition-colors text-slate-300 hover:text-white"
+            className="hidden sm:flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 transition-colors text-white/80 hover:text-white"
           >
             <HelpCircle className="h-4 w-4" />
           </a>
@@ -551,7 +556,7 @@ export function ExamenClient() {
           <button
             onClick={handleSubmit}
             disabled={status !== 'in_progress'}
-            className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 bg-danger-500 hover:bg-danger-600 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold px-3.5 py-2 rounded-lg shadow-sm transition-colors active:scale-[0.98]"
           >
             <Send className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Finalizar</span>
@@ -585,11 +590,11 @@ export function ExamenClient() {
                   {/* Question header */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blue-600 text-white text-sm font-bold flex-shrink-0">
+                      <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-brand-700 text-white text-sm font-bold flex-shrink-0 shadow-sm">
                         {currentQuestionIndex + 1}
                       </span>
                       <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                        <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
                           Pregunta {currentQuestionIndex + 1} de {totalQ}
                         </p>
                       </div>
@@ -610,9 +615,9 @@ export function ExamenClient() {
                   </div>
 
                   {/* Question card */}
-                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="px-6 py-5 border-b border-slate-100">
-                      <p className="text-base text-gray-900 leading-relaxed font-medium">
+                  <div className="card-surface overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                      <p className="text-base text-slate-900 leading-relaxed font-medium whitespace-pre-wrap">
                         {currentQ.prompt}
                       </p>
                     </div>
@@ -632,21 +637,21 @@ export function ExamenClient() {
                     <button
                       onClick={() => setCurrentQuestion(currentQuestionIndex - 1)}
                       disabled={currentQuestionIndex === 0}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 hover:border-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
                     >
                       <ChevronLeft className="h-4 w-4" />
                       Anterior
                     </button>
 
                     {/* Mobile progress */}
-                    <div className="lg:hidden text-xs text-gray-500">
+                    <div className="lg:hidden text-xs font-medium text-slate-500">
                       {answeredCount}/{totalQ} resp.
                     </div>
 
                     <button
                       onClick={() => setCurrentQuestion(currentQuestionIndex + 1)}
                       disabled={currentQuestionIndex === totalQ - 1}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-brand-700 rounded-xl shadow-sm hover:bg-brand-800 hover:shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
                     >
                       Siguiente
                       <ChevronRight className="h-4 w-4" />
@@ -703,10 +708,10 @@ export function ExamenClient() {
                 <div>
                   <button
                     onClick={() => setShowCalculator(!showCalculator)}
-                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg border transition-all ${
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm font-semibold rounded-xl border transition-all ${
                       showCalculator
-                        ? 'bg-blue-50 text-blue-700 border-blue-300'
-                        : 'bg-white text-gray-600 border-gray-300 hover:border-blue-300'
+                        ? 'bg-brand-50 text-brand-700 border-brand-300'
+                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300 hover:text-brand-700'
                     }`}
                   >
                     <CalcIcon className="h-4 w-4" />
@@ -731,7 +736,7 @@ export function ExamenClient() {
                   href="/ayuda"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 mt-2 text-blue-600 hover:underline font-medium"
+                  className="flex items-center gap-1.5 mt-2 text-brand-600 hover:underline font-medium"
                 >
                   <HelpCircle className="h-3.5 w-3.5" />
                   Ver manual completo

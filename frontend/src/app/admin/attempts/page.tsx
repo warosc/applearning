@@ -32,7 +32,7 @@ interface Attempt {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  in_progress: 'bg-blue-100 text-blue-700',
+  in_progress: 'bg-brand-100 text-brand-700',
   submitted: 'bg-green-100 text-green-700',
   expired: 'bg-gray-100 text-gray-600',
 };
@@ -64,7 +64,7 @@ function formatDate(dateStr?: string) {
 function Spinner() {
   return (
     <div className="flex items-center justify-center py-16">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent mx-auto" />
     </div>
   );
 }
@@ -185,7 +185,7 @@ export default function AttemptsPage() {
         cell: ({ row }) => (
           <Link
             href={`/admin/attempts/${row.original.id}`}
-            className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs"
+            className="flex items-center gap-1 text-brand-600 hover:text-brand-800 text-xs"
           >
             <Eye className="h-3.5 w-3.5" />
             Ver detalle
@@ -218,7 +218,7 @@ export default function AttemptsPage() {
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder="Buscar por examen o estudiante..."
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>Desde:</span>
@@ -226,7 +226,7 @@ export default function AttemptsPage() {
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -235,7 +235,7 @@ export default function AttemptsPage() {
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         {(fromDate || toDate) && (

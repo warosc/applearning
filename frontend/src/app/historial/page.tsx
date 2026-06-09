@@ -27,7 +27,7 @@ function StatusBadge({ status }: { status: Attempt['status'] }) {
   const styles: Record<Attempt['status'], string> = {
     submitted: 'bg-green-100 text-green-700',
     expired: 'bg-gray-100 text-gray-600',
-    in_progress: 'bg-blue-100 text-blue-700',
+    in_progress: 'bg-brand-100 text-brand-700',
   };
   const labels: Record<Attempt['status'], string> = {
     submitted: 'Enviado',
@@ -75,7 +75,7 @@ export default function HistorialPage() {
           </div>
           <Link
             href="/"
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-brand-600 hover:underline"
           >
             Volver al inicio
           </Link>
@@ -84,7 +84,7 @@ export default function HistorialPage() {
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent" />
           </div>
         )}
 
@@ -101,7 +101,7 @@ export default function HistorialPage() {
             <p className="font-medium text-gray-700 mb-2">No has realizado ningún intento aún.</p>
             <Link
               href="/"
-              className="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="inline-block mt-4 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               Ir al inicio
             </Link>
@@ -148,7 +148,7 @@ export default function HistorialPage() {
                       {(attempt.status === 'submitted' || attempt.status === 'expired') ? (
                         <Link
                           href={`/examen?attempt=${attempt.id}`}
-                          className="text-blue-600 hover:underline text-sm font-medium"
+                          className="text-brand-600 hover:underline text-sm font-medium"
                         >
                           Ver resultado
                         </Link>

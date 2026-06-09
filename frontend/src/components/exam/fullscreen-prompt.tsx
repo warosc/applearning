@@ -13,10 +13,10 @@ export function FullscreenPrompt({ examTitle, onEnterFullscreen, onSkip }: Fulls
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-5 text-white text-center">
-          <Shield className="h-10 w-10 mx-auto mb-2 text-blue-200" />
+        <div className="bg-gradient-to-r from-brand-600 to-brand-700 px-6 py-5 text-white text-center">
+          <Shield className="h-10 w-10 mx-auto mb-2 text-brand-200" />
           <h2 className="text-lg font-bold">{examTitle}</h2>
-          <p className="text-sm text-blue-200 mt-1">Simulador Escobita</p>
+          <p className="text-sm text-brand-200 mt-1">Simulador Escobita</p>
         </div>
 
         <div className="px-6 py-5 space-y-4">
@@ -36,7 +36,7 @@ export function FullscreenPrompt({ examTitle, onEnterFullscreen, onSkip }: Fulls
           <div className="flex flex-col gap-3">
             <button
               onClick={onEnterFullscreen}
-              className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors shadow-sm"
+              className="flex items-center justify-center gap-2 w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors shadow-sm"
             >
               <Maximize2 className="h-4 w-4" />
               Entrar en pantalla completa

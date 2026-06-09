@@ -47,7 +47,7 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div className="md:col-span-2">
@@ -56,7 +56,7 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div>
@@ -66,7 +66,7 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
             value={totalScore}
             onChange={(e) => setTotalScore(Number(e.target.value))}
             min={1}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div>
@@ -76,7 +76,7 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
             value={durationMinutes}
             onChange={(e) => setDurationMinutes(Number(e.target.value))}
             min={1}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
             id="is_published"
             checked={isPublished}
             onChange={(e) => setIsPublished(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600"
+            className="h-4 w-4 rounded border-gray-300 text-brand-600"
           />
           <label htmlFor="is_published" className="text-sm font-medium text-gray-700">
             Publicado (visible para estudiantes)
@@ -97,7 +97,7 @@ export function ExamForm({ initialData, onSave, saving }: Props) {
         <button
           type="submit"
           disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium px-5 py-2 rounded-lg"
+          className="bg-brand-600 hover:bg-brand-700 disabled:bg-brand-400 text-white text-sm font-medium px-5 py-2 rounded-lg"
         >
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>

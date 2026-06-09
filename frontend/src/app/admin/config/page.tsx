@@ -69,7 +69,7 @@ export default function ConfigPage() {
             <input
               type="number"
               {...register('defaultDurationMinutes', { valueAsNumber: true })}
-              className="w-40 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-40 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
             {errors.defaultDurationMinutes && (
               <p className="mt-1 text-xs text-red-600">{errors.defaultDurationMinutes.message}</p>
@@ -81,7 +81,7 @@ export default function ConfigPage() {
               type="checkbox"
               id="calculatorEnabled"
               {...register('calculatorEnabledByDefault')}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
             />
             <label htmlFor="calculatorEnabled" className="text-sm text-gray-700">
               Calculadora habilitada por defecto
@@ -94,7 +94,7 @@ export default function ConfigPage() {
             </label>
             <select
               {...register('defaultNavigationType')}
-              className="w-48 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-48 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             >
               <option value="free">Libre (puede saltar preguntas)</option>
               <option value="sequential">Secuencial (una por una)</option>
@@ -125,7 +125,7 @@ export default function ConfigPage() {
             href="http://localhost:4000/api/docs"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800"
+            className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-800"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             Documentación API (Swagger)
@@ -136,7 +136,7 @@ export default function ConfigPage() {
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
           >
             <Save className="h-4 w-4" />
             Guardar configuración

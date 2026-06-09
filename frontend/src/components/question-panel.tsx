@@ -41,11 +41,11 @@ export function QuestionPanel() {
               onClick={() => setCurrentQuestion(i)}
               className={cn(
                 'relative flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-all',
-                isActive && 'ring-2 ring-blue-500 ring-offset-2',
+                isActive && 'ring-2 ring-brand-500 ring-offset-2',
                 answered && !isActive && 'bg-green-100 text-green-800 hover:bg-green-200',
                 !answered && !isActive && 'bg-slate-100 text-slate-600 hover:bg-slate-200',
                 isActive && answered && 'bg-green-100 text-green-800',
-                isActive && !answered && 'bg-blue-50 text-blue-800',
+                isActive && !answered && 'bg-brand-50 text-brand-800',
               )}
             >
               {i + 1}

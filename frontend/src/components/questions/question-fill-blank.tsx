@@ -31,7 +31,7 @@ export function QuestionFillBlank({ question, answer, onAnswer }: QuestionFillBl
           value={typeof answer === 'string' ? answer : ''}
           onChange={(e) => onAnswer(e.target.value)}
           placeholder="Escribe aquí..."
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
         />
       </div>
     );
@@ -54,14 +54,14 @@ export function QuestionFillBlank({ question, answer, onAnswer }: QuestionFillBl
               onClick={() => onAnswer(isSelected ? '' : opt.value)}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-left text-sm transition-all ${
                 isSelected
-                  ? 'bg-blue-50 border-blue-500 text-blue-900 shadow-sm'
-                  : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50/50'
+                  ? 'bg-brand-50 border-brand-500 text-brand-900 shadow-sm'
+                  : 'bg-white border-gray-200 text-gray-700 hover:border-brand-300 hover:bg-brand-50/50'
               }`}
             >
               <span
                 className={`flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold border ${
                   isSelected
-                    ? 'bg-blue-600 text-white border-blue-600'
+                    ? 'bg-brand-600 text-white border-brand-600'
                     : 'bg-gray-100 text-gray-600 border-gray-300'
                 }`}
               >

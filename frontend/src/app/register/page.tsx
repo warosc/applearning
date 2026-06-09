@@ -8,6 +8,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { register as registerApi } from '@/lib/api';
 import { useAuthStore } from '@/store/auth-store';
 import Link from 'next/link';
+import { Logo } from '@/components/ui/logo';
+import { Field } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, GraduationCap, TrendingUp, History } from 'lucide-react';
 
 const schema = z
   .object({
@@ -52,97 +56,84 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-md p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">Crear cuenta</h1>
+    <div className="grid min-h-screen lg:grid-cols-2">
+      {/* ── Brand panel (desktop) ── */}
+      <div className="relative hidden overflow-hidden bg-gradient-to-br from-brand-800 via-brand-700 to-brand-900 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="pointer-events-none absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 15% 15%, rgba(255,255,255,0.25), transparent 40%), radial-gradient(circle at 85% 10%, rgba(16,185,129,0.4), transparent 35%)' }} />
+        <Link href="/" className="relative">
+          <Logo wordmarkClassName="text-white" markClassName="ring-2 ring-white/20 rounded-2xl" />
+        </Link>
+        <div className="relative">
+          <h2 className="font-display text-3xl font-extrabold leading-tight">
+            Empieza a prepararte<br />hoy mismo.
+          </h2>
+          <p className="mt-4 max-w-sm text-white/80">
+            Crea tu cuenta gratis y accede a simuladores con seguimiento de tu progreso.
+          </p>
+          <ul className="mt-8 space-y-3 text-sm text-white/85">
+            <li className="flex items-center gap-3"><GraduationCap className="h-5 w-5 text-success-300" /> Simuladores con condiciones reales</li>
+            <li className="flex items-center gap-3"><TrendingUp className="h-5 w-5 text-success-300" /> Mide tu avance por materia</li>
+            <li className="flex items-center gap-3"><History className="h-5 w-5 text-success-300" /> Historial de todos tus intentos</li>
+          </ul>
+        </div>
+        <p className="relative text-xs text-white/50">© Escobita · Simulador EXHCOBA</p>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Username */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Usuario <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              {...register('username')}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      {/* ── Form ── */}
+      <div className="flex items-center justify-center bg-slate-50 px-4 py-12">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 flex justify-center lg:hidden">
+            <Link href="/"><Logo /></Link>
+          </div>
+
+          <h1 className="font-display text-2xl font-bold text-slate-900">Crear cuenta</h1>
+          <p className="mt-1 text-sm text-slate-500">Toma unos segundos. Es gratis.</p>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+            <Field
+              label="Usuario"
               placeholder="mi_usuario"
+              error={errors.username?.message}
+              {...register('username')}
             />
-            {errors.username && (
-              <p className="mt-1 text-xs text-red-600">{errors.username.message}</p>
-            )}
-          </div>
-
-          {/* Name (optional) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nombre completo <span className="text-gray-400 text-xs">(opcional)</span>
-            </label>
-            <input
-              type="text"
-              {...register('name')}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Field
+              label="Nombre completo (opcional)"
               placeholder="Juan Pérez"
+              error={errors.name?.message}
+              {...register('name')}
             />
-            {errors.name && (
-              <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Contraseña <span className="text-red-500">*</span>
-            </label>
-            <input
+            <Field
+              label="Contraseña"
               type="password"
+              placeholder="••••••••"
+              error={errors.password?.message}
               {...register('password')}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••"
             />
-            {errors.password && (
-              <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
-            )}
-          </div>
-
-          {/* Confirm Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirmar contraseña <span className="text-red-500">*</span>
-            </label>
-            <input
+            <Field
+              label="Confirmar contraseña"
               type="password"
-              {...register('confirmPassword')}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="••••••••"
+              error={errors.confirmPassword?.message}
+              {...register('confirmPassword')}
             />
-            {errors.confirmPassword && (
-              <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>
+
+            {serverError && (
+              <div className="flex items-start gap-2 rounded-xl border border-danger-200 bg-danger-50 px-3 py-2 text-sm text-danger-700">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{serverError}</span>
+              </div>
             )}
-          </div>
 
-          {/* Server error */}
-          {serverError && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              {serverError}
-            </p>
-          )}
+            <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
+              {isSubmitting ? 'Creando cuenta…' : 'Crear cuenta'}
+            </Button>
+          </form>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 rounded-lg text-sm transition-colors"
-          >
-            {isSubmitting ? 'Creando cuenta...' : 'Crear cuenta'}
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-500 mt-4">
-          ¿Ya tienes cuenta?{' '}
-          <Link href="/login" className="text-blue-600 hover:underline">
-            Iniciar sesión
-          </Link>
-        </p>
+          <p className="mt-6 text-center text-sm text-slate-500">
+            ¿Ya tienes cuenta?{' '}
+            <Link href="/login" className="font-semibold text-brand-700 hover:underline">Iniciar sesión</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

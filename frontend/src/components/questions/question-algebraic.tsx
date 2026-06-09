@@ -15,7 +15,7 @@ export function QuestionAlgebraic({ answer, onAnswer }: QuestionAlgebraicProps) 
         value={typeof answer === 'string' ? answer : ''}
         onChange={(e) => onAnswer(e.target.value === '' ? null : e.target.value)}
         placeholder="Ej: x² + 2x + 1 ó x^2+2x+1"
-        className="w-full px-4 py-3 text-base font-mono border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+        className="w-full px-4 py-3 text-base font-mono border-2 border-gray-200 rounded-xl focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-all"
         spellCheck={false}
         autoComplete="off"
       />

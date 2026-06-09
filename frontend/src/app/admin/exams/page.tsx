@@ -30,7 +30,7 @@ interface Exam {
 function Spinner() {
   return (
     <div className="flex items-center justify-center py-16">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent mx-auto" />
     </div>
   );
 }
@@ -160,7 +160,7 @@ export default function AdminExamsPage() {
           <div className="flex items-center gap-3 justify-end">
             <Link
               href={`/admin/exams/${row.original.id}`}
-              className="flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs"
+              className="flex items-center gap-1 text-brand-600 hover:text-brand-800 text-xs"
             >
               <Pencil className="h-3.5 w-3.5" />
               Editar
@@ -205,7 +205,7 @@ export default function AdminExamsPage() {
         <h1 className="text-2xl font-bold text-gray-900">Simuladores</h1>
         <Link
           href="/admin/exams/new"
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
           + Nuevo simulador
         </Link>
@@ -217,7 +217,7 @@ export default function AdminExamsPage() {
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder="Buscar por título..."
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-72 focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
       </div>
 
@@ -230,7 +230,7 @@ export default function AdminExamsPage() {
           <p className="text-gray-500 mb-4">No hay simuladores aún.</p>
           <Link
             href="/admin/exams/new"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
+            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-lg"
           >
             Crear primer simulador
           </Link>

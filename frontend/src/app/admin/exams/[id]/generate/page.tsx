@@ -104,7 +104,7 @@ export default function GenerateExamPage() {
 
       {sections.length > 0 && (
         <button onClick={handleGenerate} disabled={generating}
-          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium px-5 py-2.5 rounded-lg text-sm">
+          className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-medium px-5 py-2.5 rounded-lg text-sm">
           {generating ? 'Generando...' : 'Generar examen'}
         </button>
       )}

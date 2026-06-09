@@ -206,7 +206,7 @@ export default function EditExamPage() {
           </h2>
           <button
             onClick={() => { setAddingQuestion(true); setEditingQuestion(null); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg"
+            className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-1.5 rounded-lg"
           >
             + Agregar pregunta
           </button>
@@ -225,7 +225,7 @@ export default function EditExamPage() {
                 key={q.id}
                 onDragOver={(e) => { if (dragIndex !== null) { e.preventDefault(); setDragOverIndex(idx); } }}
                 onDrop={() => handleDropOn(idx)}
-                className={dragOverIndex === idx && dragIndex !== idx ? 'border-t-2 border-blue-400' : ''}
+                className={dragOverIndex === idx && dragIndex !== idx ? 'border-t-2 border-brand-400' : ''}
               >
                 {editingQuestion?.id === q.id ? (
                   <QuestionEditor
@@ -258,7 +258,7 @@ export default function EditExamPage() {
                     <div className="flex gap-2 shrink-0">
                       <button
                         onClick={() => { setEditingQuestion(q); setAddingQuestion(false); }}
-                        className="text-xs text-blue-600 hover:text-blue-800"
+                        className="text-xs text-brand-600 hover:text-brand-800"
                       >
                         Editar
                       </button>

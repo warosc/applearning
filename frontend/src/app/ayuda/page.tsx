@@ -17,7 +17,7 @@ function HelpSection({ icon, title, children }: HelpSectionProps) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 bg-slate-50">
-        <span className="text-blue-600">{icon}</span>
+        <span className="text-brand-600">{icon}</span>
         <h2 className="text-base font-semibold text-gray-800">{title}</h2>
       </div>
       <div className="px-5 py-4 space-y-2 text-sm text-gray-700 leading-relaxed">
@@ -30,7 +30,7 @@ function HelpSection({ icon, title, children }: HelpSectionProps) {
 function Bullet({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2">
-      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-brand-500 flex-shrink-0" />
       <span>{children}</span>
     </div>
   );
@@ -46,13 +46,13 @@ export default function AyudaPage() {
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-gray-500 hover:text-blue-600 text-sm font-medium transition-colors"
+            className="flex items-center gap-1.5 text-gray-500 hover:text-brand-600 text-sm font-medium transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
             Volver
           </button>
           <div className="flex items-center gap-2">
-            <HelpCircle className="h-5 w-5 text-blue-600" />
+            <HelpCircle className="h-5 w-5 text-brand-600" />
             <h1 className="text-lg font-bold text-gray-900">Manual de Ayuda — Escobita Simulator</h1>
           </div>
         </div>
@@ -62,9 +62,9 @@ export default function AyudaPage() {
       <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
 
         {/* Intro */}
-        <div className="bg-blue-600 text-white rounded-xl p-5">
+        <div className="bg-brand-600 text-white rounded-xl p-5">
           <p className="text-base font-semibold mb-1">Bienvenido al Simulador Escobita</p>
-          <p className="text-sm text-blue-100">
+          <p className="text-sm text-brand-100">
             Este simulador te ayuda a practicar para el examen de admisión. Lee este manual para sacarle
             el máximo provecho.
           </p>

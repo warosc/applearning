@@ -136,7 +136,7 @@ export function QuestionImageHotspot({ question, answer, onAnswer }: QuestionIma
                       onClick={() => handleSelect(spot.id, opt)}
                       className={`w-full text-left px-3 py-2 text-sm transition-colors border-t border-gray-100 first:border-0
                         ${sel === opt
-                          ? 'bg-blue-50 text-blue-800 font-semibold'
+                          ? 'bg-brand-50 text-brand-800 font-semibold'
                           : 'hover:bg-gray-50 text-gray-700'}
                       `}
                     >

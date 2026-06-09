@@ -70,7 +70,7 @@ export function QuestionInlineChoice({ question, answer, onAnswer }: QuestionInl
                 onChange={(e) => handleSelect(blankId, e.target.value)}
                 className={`border-b-2 bg-transparent focus:outline-none px-1 py-0.5 text-base transition-colors cursor-pointer ${
                   selected
-                    ? 'border-blue-500 text-blue-800 font-semibold'
+                    ? 'border-brand-500 text-brand-800 font-semibold'
                     : 'border-gray-400 text-gray-400'
                 }`}
               >
@@ -94,7 +94,7 @@ export function QuestionInlineChoice({ question, answer, onAnswer }: QuestionInl
                 key={b.id}
                 className={`px-2 py-0.5 rounded-full border ${
                   sel
-                    ? 'bg-blue-50 border-blue-300 text-blue-700'
+                    ? 'bg-brand-50 border-brand-300 text-brand-700'
                     : 'bg-gray-50 border-gray-200 text-gray-400'
                 }`}
               >

@@ -146,7 +146,7 @@ function ImageField({ value, onChange, label = 'Imagen' }: { value: string; onCh
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="https://... o sube un archivo"
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
         />
         <button
           type="button"
@@ -207,7 +207,7 @@ function HotspotEditor({
           className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
             placing
               ? 'bg-amber-500 text-white border-amber-600 animate-pulse'
-              : 'bg-white text-blue-600 border-blue-300 hover:bg-blue-50'
+              : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50'
           } disabled:opacity-40 disabled:cursor-not-allowed`}
         >
           {placing ? '🎯 Haz clic en la imagen…' : '+ Colocar punto'}
@@ -295,7 +295,7 @@ function HotspotEditor({
                         if (wasCorrect) onUpdate(hIdx, { correct: newVal });
                       }}
                       placeholder={`Opción ${oIdx + 1} (ej. Pulmón)`}
-                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                     />
                     <button type="button" onClick={() => onRemoveOption(hIdx, oIdx)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
                   </div>
@@ -305,7 +305,7 @@ function HotspotEditor({
               <button
                 type="button"
                 onClick={() => onAddOption(hIdx)}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs text-brand-600 hover:text-brand-800"
               >
                 + Agregar opción
               </button>
@@ -539,9 +539,9 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="border-2 border-blue-200 rounded-xl p-5 bg-blue-50 space-y-4"
+      className="border-2 border-brand-200 rounded-xl p-5 bg-brand-50 space-y-4"
     >
-      <h3 className="font-semibold text-blue-700 text-sm">
+      <h3 className="font-semibold text-brand-700 text-sm">
         {init?.id ? 'Editar pregunta' : 'Nueva pregunta'}
       </h3>
 
@@ -551,8 +551,8 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
           <label className="block text-xs font-medium text-gray-600 mb-1">
             Enunciado
             {isInlineChoice && (
-              <span className="ml-2 text-blue-500 font-normal">
-                — usa <code className="bg-blue-100 px-1 rounded">{'{0}'}</code>, <code className="bg-blue-100 px-1 rounded">{'{1}'}</code>… como espacios en blanco
+              <span className="ml-2 text-brand-500 font-normal">
+                — usa <code className="bg-brand-100 px-1 rounded">{'{0}'}</code>, <code className="bg-brand-100 px-1 rounded">{'{1}'}</code>… como espacios en blanco
               </span>
             )}
           </label>
@@ -561,13 +561,13 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
             onChange={(e) => setPrompt(e.target.value)}
             required
             rows={3}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
           />
           {isInlineChoice && (
             <button
               type="button"
               onClick={addBlank}
-              className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 bg-white"
+              className="text-xs text-brand-600 hover:text-brand-800 border border-brand-300 rounded px-2 py-1 bg-white"
             >
               + Agregar espacio en blanco {`{${inlineBlanks.length}}`}
             </button>
@@ -579,7 +579,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
             >
               {QUESTION_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -595,7 +595,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 onChange={(e) => setScore(Number(e.target.value))}
                 min={0}
                 step="any"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
               />
             </div>
             <div>
@@ -605,7 +605,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 value={orderIndex}
                 onChange={(e) => setOrderIndex(Number(e.target.value))}
                 min={0}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
               />
             </div>
           </div>
@@ -621,7 +621,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
             value={materia}
             onChange={(e) => setMateria(e.target.value)}
             placeholder="ej. Español"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
           />
         </div>
         <div>
@@ -634,7 +634,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
             placeholder="ej. Acentuación"
             // No lowercase for 'tema' as it might be a proper noun or case-sensitive in backend logic
             // If backend expects lowercase, add .toLowerCase() here
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
           />
         </div>
       </div>
@@ -656,7 +656,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 onBlur={(e) => setExpectedAnswer(e.target.value.trim())} // Trim on blur
                 required
                 placeholder="ej. 9.8"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
               />
             </div>
             <div>
@@ -664,7 +664,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
               <select
                 value={numericComparison}
                 onChange={(e) => setNumericComparison(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
               >
                 {NUMERIC_COMPARISONS.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -681,7 +681,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                   onChange={(e) => setNumericTolerance(Number(e.target.value))}
                   min={0}
                   placeholder="0.001"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
                 />
               </div>
             )}
@@ -692,7 +692,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 value={numericUnit}
                 onChange={(e) => setNumericUnit(e.target.value)}
                 placeholder="ej. m/s², km, °C"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
               />
             </div>
             <div className="sm:col-span-2">
@@ -707,7 +707,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                   setUnitsInput(e.target.value);
                 }}
                 placeholder="ej. km, millas, m"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white"
               />
             </div>
           </div>
@@ -725,7 +725,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
               <button
                 type="button"
                 onClick={addScoreRange}
-                className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 bg-white whitespace-nowrap ml-3"
+                className="text-xs text-brand-600 hover:text-brand-800 border border-brand-300 rounded px-2 py-1 bg-white whitespace-nowrap ml-3"
               >
                 + Rango
               </button>
@@ -748,7 +748,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                       value={r.min}
                       onChange={(e) => updateScoreRange(idx, { min: e.target.value })}
                       placeholder="-∞"
-                      className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                     />
                     <input
                       type="number"
@@ -756,7 +756,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                       value={r.max}
                       onChange={(e) => updateScoreRange(idx, { max: e.target.value })}
                       placeholder="+∞"
-                      className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                     />
                     <div className="relative">
                       <input
@@ -767,7 +767,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                         value={r.fraction}
                         onChange={(e) => updateScoreRange(idx, { fraction: e.target.value })}
                         placeholder="1"
-                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                       />
                       {r.fraction !== '' && (
                         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none">
@@ -799,7 +799,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
             value={expectedAnswer}
             onChange={(e) => setExpectedAnswer(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white max-w-xs"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white max-w-xs"
           />
         </div>
       )}
@@ -812,7 +812,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
               Opciones
               {hasWeight && <span className="ml-1 text-gray-400">(peso suma 1.0)</span>}
             </label>
-            <button type="button" onClick={addOption} className="text-xs text-blue-600 hover:text-blue-800">
+            <button type="button" onClick={addOption} className="text-xs text-brand-600 hover:text-brand-800">
               + Agregar opción
             </button>
           </div>
@@ -853,7 +853,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                     onBlur={(e) => updateOption(idx, { label: e.target.value.trim() })} // Trim label on blur
                     placeholder="Etiqueta de la opción"
                     required
-                    className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
 
                   {/* Weight — only for multi_answer_weighted */}
@@ -868,7 +868,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                       step={0.1}
                       placeholder="peso"
                       title="Peso (0.0–1.0)"
-                      className="w-16 border border-gray-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-16 border border-gray-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                     />
                   )}
 
@@ -906,7 +906,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
             <button
               type="button"
               onClick={addBlank}
-              className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 bg-white"
+              className="text-xs text-brand-600 hover:text-brand-800 border border-brand-300 rounded px-2 py-1 bg-white"
             >
               + Agregar espacio {`{${inlineBlanks.length}}`}
             </button>
@@ -953,7 +953,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                         if (wasCorrect) updateBlank(bIdx, { correct: newVal });
                       }}
                       placeholder={`Opción ${oIdx + 1} (ej. mamá)`}
-                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                     />
                     <button type="button" onClick={() => removeBlankOption(bIdx, oIdx)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
                   </div>
@@ -963,7 +963,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
               <button
                 type="button"
                 onClick={() => addBlankOption(bIdx)}
-                className="text-xs text-blue-600 hover:text-blue-800"
+                className="text-xs text-brand-600 hover:text-brand-800"
               >
                 + Agregar opción
               </button>
@@ -998,7 +998,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Categorías</p>
               <button type="button" onClick={addCategory}
-                className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 bg-white">
+                className="text-xs text-brand-600 hover:text-brand-800 border border-brand-300 rounded px-2 py-1 bg-white">
                 + Agregar categoría
               </button>
             </div>
@@ -1012,7 +1012,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                   onBlur={(e) => updateCategory(cIdx, e.target.value.trim())} // Trim label on blur
                   placeholder={`Nombre categoría ${cIdx + 1}`}
                   required
-                  className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
                 {categories.length > 2 && (
                   <button type="button" onClick={() => removeCategory(cIdx)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
@@ -1028,7 +1028,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                 Elementos y su categoría correcta
               </p>
               <button type="button" onClick={addOption}
-                className="text-xs text-blue-600 hover:text-blue-800 border border-blue-300 rounded px-2 py-1 bg-white">
+                className="text-xs text-brand-600 hover:text-brand-800 border border-brand-300 rounded px-2 py-1 bg-white">
                 + Agregar elemento
               </button>
             </div>
@@ -1049,12 +1049,12 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
                   onBlur={(e) => updateOption(idx, { label: e.target.value.trim() })} // Trim label on blur
                   placeholder="Elemento (ej. VIH)"
                   required
-                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
                 <select
                   value={correctMap[opt.value] ?? ''}
                   onChange={(e) => setCorrectMap((prev) => ({ ...prev, [opt.value]: e.target.value }))}
-                  className="border border-gray-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="border border-gray-300 rounded px-2 py-1 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                 >
                   <option value="">— categoría —</option>
                   {categories.map((cat) => (
@@ -1079,7 +1079,7 @@ export function QuestionEditor({ initialData, onSave, onCancel }: Props) {
         </button>
         <button
           type="submit"
-          className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-medium"
+          className="text-sm bg-brand-600 hover:bg-brand-700 text-white px-4 py-1.5 rounded-lg font-medium"
         >
           {init?.id ? 'Guardar cambios' : 'Crear pregunta'}
         </button>

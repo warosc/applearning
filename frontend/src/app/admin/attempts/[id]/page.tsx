@@ -35,7 +35,7 @@ interface AttemptDetail {
 const STATUS_BADGE: Record<string, string> = {
   submitted: 'bg-green-100 text-green-700',
   expired: 'bg-gray-100 text-gray-600',
-  in_progress: 'bg-blue-100 text-blue-700',
+  in_progress: 'bg-brand-100 text-brand-700',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -76,7 +76,7 @@ export default function AttemptDetailPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent" />
       </div>
     );
   }

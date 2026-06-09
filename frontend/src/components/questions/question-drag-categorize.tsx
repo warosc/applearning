@@ -118,7 +118,7 @@ export function QuestionDragCategorize({ question, answer, onAnswer }: QuestionD
       <div
         className={`min-h-[64px] rounded-xl border-2 border-dashed p-3 transition-colors ${
           draggingOver === 'pool'
-            ? 'border-blue-400 bg-blue-50'
+            ? 'border-brand-400 bg-brand-50'
             : 'border-gray-300 bg-gray-50'
         }`}
         onDragOver={(e) => { e.preventDefault(); setDraggingOver('pool'); }}
@@ -155,9 +155,9 @@ export function QuestionDragCategorize({ question, answer, onAnswer }: QuestionD
               key={cat.id}
               className={`rounded-xl border-2 overflow-hidden transition-colors ${
                 isOver
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-brand-500 bg-brand-50'
                   : selected
-                    ? 'border-blue-300 bg-blue-50/40 cursor-pointer'
+                    ? 'border-brand-300 bg-brand-50/40 cursor-pointer'
                     : 'border-gray-200 bg-white'
               }`}
               onDragOver={(e) => { e.preventDefault(); setDraggingOver(cat.id); }}
@@ -173,7 +173,7 @@ export function QuestionDragCategorize({ question, answer, onAnswer }: QuestionD
               {/* Dropped items */}
               <div className="p-2 min-h-[80px] flex flex-col gap-1.5">
                 {selected && (
-                  <p className="text-[10px] text-blue-500 text-center py-1 animate-pulse">
+                  <p className="text-[10px] text-brand-500 text-center py-1 animate-pulse">
                     Toca para colocar aquí
                   </p>
                 )}
@@ -221,10 +221,10 @@ function DraggableItem({
       onClick={(e) => { e.stopPropagation(); onTap(); }}
       className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-grab active:cursor-grabbing select-none transition-all
         ${isSelected
-          ? 'border-blue-500 bg-blue-100 shadow-md ring-2 ring-blue-300 scale-105'
+          ? 'border-brand-500 bg-brand-100 shadow-md ring-2 ring-brand-300 scale-105'
           : placed
-            ? 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/30'
-            : 'border-gray-300 bg-white hover:border-blue-300 hover:bg-blue-50/40 shadow-sm'
+            ? 'border-gray-200 bg-white hover:border-brand-300 hover:bg-brand-50/30'
+            : 'border-gray-300 bg-white hover:border-brand-300 hover:bg-brand-50/40 shadow-sm'
         }
       `}
     >

@@ -149,7 +149,7 @@ export function ResultsView({ result, onRestart }: ResultsViewProps) {
 
         {/* Progress insight */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-4 flex items-center gap-4">
-          <TrendingUp className="h-5 w-5 text-blue-500 flex-shrink-0" />
+          <TrendingUp className="h-5 w-5 text-brand-500 flex-shrink-0" />
           <p className="text-sm text-gray-600">
             {pct >= 70
               ? 'Tu desempeño es muy bueno. Sigue practicando para consolidar tus conocimientos.'
@@ -251,7 +251,7 @@ export function ResultsView({ result, onRestart }: ResultsViewProps) {
           </button>
           <button
             onClick={onRestart}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-xl transition-colors shadow-sm"
           >
             <RotateCcw className="h-4 w-4" />
             Volver al inicio

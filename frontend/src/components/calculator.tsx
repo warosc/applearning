@@ -79,9 +79,9 @@ export function Calculator() {
       fn:  'bg-slate-200 hover:bg-slate-300 text-slate-600',
       sci: 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200',
       op:  active
-            ? 'bg-blue-600 text-white shadow-inner'
-            : 'bg-blue-100 hover:bg-blue-200 text-blue-700',
-      eq:  'bg-blue-600 hover:bg-blue-700 text-white shadow',
+            ? 'bg-brand-600 text-white shadow-inner'
+            : 'bg-brand-100 hover:bg-brand-200 text-brand-700',
+      eq:  'bg-brand-600 hover:bg-brand-700 text-white shadow',
     };
     return (
       <button onClick={onClick} className={`${base} ${styles[variant]}`}>

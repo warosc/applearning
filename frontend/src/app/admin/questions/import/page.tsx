@@ -74,7 +74,7 @@ numeric,¿Cuánto es la raíz cuadrada de 16?,Matemáticas,Álgebra,medio,2,,,,4
         <div className="flex gap-2">
           {(['json', 'csv'] as const).map(m => (
             <button key={m} onClick={() => { setMode(m); setContent(''); }}
-              className={`px-4 py-2 text-sm rounded-lg font-medium ${mode === m ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
+              className={`px-4 py-2 text-sm rounded-lg font-medium ${mode === m ? 'bg-brand-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
               {m.toUpperCase()}
             </button>
           ))}
@@ -89,7 +89,7 @@ numeric,¿Cuánto es la raíz cuadrada de 16?,Matemáticas,Álgebra,medio,2,,,,4
             onChange={e => setContent(e.target.value)}
             rows={12}
             placeholder={mode === 'json' ? JSON_EXAMPLE : CSV_EXAMPLE}
-            className="w-full font-mono text-sm border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full font-mono text-sm border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
 
@@ -114,7 +114,7 @@ numeric,¿Cuánto es la raíz cuadrada de 16?,Matemáticas,Álgebra,medio,2,,,,4
         )}
 
         <button onClick={handleImport} disabled={loading || !content.trim()}
-          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg text-sm">
+          className="bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-medium px-4 py-2 rounded-lg text-sm">
           {loading ? 'Importando...' : 'Importar preguntas'}
         </button>
       </div>
